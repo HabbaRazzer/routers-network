@@ -1,14 +1,14 @@
 CC=gcc
 CFLAGS = -Wall -g -pthread
-OBJ = server.o client.o
+OBJ = router.o client.o
 
-all: client server
+all: client router
 
 client: client.c
 	$(CC) $(CFLAGS) -o client client.c
 
-server: server.c
-	$(CC) $(CFLAGS) -o server server.c
+router: router.c
+	$(CC) $(CFLAGS) -o router router.c
 
 clean:
-	rm server client
+	rm router client
