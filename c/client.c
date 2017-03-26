@@ -2,7 +2,7 @@
  * Nick Martinez, Robert Windisch, Stephen Clabaugh, Darnell Martin
  * CSC434 - Computer Networks
  * Routing-Network (C Implementation) Client 
-*/
+ */
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -16,16 +16,20 @@
 #include <pthread.h>
 
 #define MAX_BUFFER_SIZE 5
-#define DATA_OFFSET 3
 #define SOURCE_OFFSET 0
-#define PORT 4446
-#define SERVER_ADDR "127.0.0.1"
-#define NUM_MESSAGES 10
+#define DEST_OFFSET 1
+#define CHECK_OFFSET 2
+#define DATA_OFFSET 3
+
+const char * const HOST_ADDRS[] = { "127.0.0.1", };
 
 size_t current_value = 1;
 
 void diep(char* s);
-bool checksum(char* message);
+void calc_checksum(unsigned char* message);
+bool is_not_corrupt(unsigned char* message);
+void *handle_message(void* socket);
+void *send_message(void);
 
 /**
  * Handles any messages sent from a client.
@@ -33,11 +37,11 @@ bool checksum(char* message);
  * params:
  *   socket - the socket interface to the client connection 
  */
-void *handle_message(void *socket)
+void *handle_message(void* socket)
 {
   while( 1 ) 
   {
-    char recv_buffer[MAX_BUFFER_SIZE] = {0};
+    unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
     int status;
     int client_socket = *((int*) socket);
     if( (status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1 ) 
@@ -67,14 +71,27 @@ void *handle_message(void *socket)
 }
 
 /**
+ * Calculates the checksum.
+ */
+void calc_checksum(unsigned char* message)
+{
+    unsigned char sum = message[SOURCE_OFFSET] + message[DEST_OFFSET] + message[DATA_OFFSET] + 
+        message[DATA_OFFSET+1];
+    unsigned char checksum = sum + ~sum;
+    message[CHECK_OFFSET] = checksum;
+}
+
+/**
  * Checks the message to see if it is corrupted.
  *
  * return:
  *   true if not corrupted
  */
-bool checksum(char* message)
+bool is_not_corrupt(unsigned char* message)
 {
-  //TODO
+    unsigned char sum = message[SOURCE_OFFSET] + message[DEST_OFFSET] + message[CHECK_OFFSET] + 
+        message[DATA_OFFSET] + message[DATA_OFFSET+1];
+    return ~sum == 0;
 }
 
 /**
