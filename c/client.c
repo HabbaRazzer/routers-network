@@ -1,7 +1,7 @@
 /*
- * Nick Martinez, Robert Windisch
+ * Nick Martinez, Robert Windisch, Stephen Clabaugh, Darnell Martin
  * CSC434 - Computer Networks
- * Client-Server (C Implementation) Client 
+ * Routing-Network (C Implementation) Client 
 */
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -13,11 +13,51 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h> 
+#include <pthread.h>
 
-#define MAX_BUFFER_SIZE 10
+#define MAX_BUFFER_SIZE 5
+#define DATA_OFFSET 3
+#define SOURCE_OFFSET 0
 #define PORT 4446
 #define SERVER_ADDR "127.0.0.1"
 #define NUM_MESSAGES 10
+
+void *handle_message(void *socket);
+
+/**
+ * Handles any messages sent from a client.
+ *
+ * params:
+ *   socket - the socket interface to the client connection 
+ */
+void *handle_message(void *socket)
+{
+  while( 1 ) 
+  {
+    char recv_buffer[MAX_BUFFER_SIZE] = {0};
+    int status;
+    int client_socket = *((int*) socket);
+    if( (status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1 ) 
+    {
+      diep("client - recv() inside handle_message thread");
+    }
+
+    if( status == 0 ) 
+    {
+      // client has closed the connection
+      pthread_exit(NULL);
+    }
+
+    // print the contents of the message
+    printf("data - %d%d, source - %d", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET+1], 
+        recv_buffer[SOURCE_OFFSET]);
+
+    if( send(client_socket, recv_buffer, sizeof recv_buffer, 0) == -1 ) 
+    {
+      diep("client - send() inside handle_message thread");
+    }
+  }
+}
 
 /**
  * Print the error and quit.

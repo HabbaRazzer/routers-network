@@ -1,7 +1,7 @@
 /*
- * Nick Martinez, Robert Windisch
+ * Nick Martinez, Robert Windisch, Stephen Clabaugh, Darnell Martin
  * CSC434 - Computer Networks
- * Client-Server (C Implementation) Server 
+ * Routing-Network (C Implementation) Router 
 */
 #include <sys/socket.h>
 #include <netinet/in.h>
