@@ -20,8 +20,9 @@
 #define DEST_OFFSET 1
 #define CHECK_OFFSET 2
 #define DATA_OFFSET 3
+#define ROUTER_ADDR "127.0.0.1"
 
-const char * const HOST_ADDRS[] = { "127.0.0.1", };
+const char * const CLIENT_ADDRS[] = { };
 
 size_t current_value = 1;
 
@@ -56,12 +57,14 @@ void *handle_message(void* socket)
     }
     
     // corruption check
-    // bool corrupt = !checksum(recv_buffer);
+    bool not_corrupt = is_not_corrupt(recv_buffer);
 
     // print the contents of the message
-    // if( !corrupt ) { ... }
-    printf("data - %d%d, source - %d", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET+1], 
-        recv_buffer[SOURCE_OFFSET]);
+    if( not_corrupt )
+	{
+    	printf("data - %d%d, source - %d", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET+1], 
+        	recv_buffer[SOURCE_OFFSET]);
+	}
 
     if( send(client_socket, recv_buffer, sizeof recv_buffer, 0) == -1 ) 
     {
@@ -100,6 +103,12 @@ bool is_not_corrupt(unsigned char* message)
 void *send_message(void) 
 {
   // every two seconds - send message to client randomly selected
+	// pick random client
+	// connect to router
+	// package message
+	// send message to router
+	// print data + destination to stdout
+	// loop
 }
 
 /**
