@@ -15,9 +15,13 @@
 #include <time.h> 
 #include <pthread.h>
 
-#define MAX_BUFFER_SIZE 10
+#define MAX_BUFFER_SIZE 5
 #define PORT 4446
 #define BACKLOG 10
+#define NUM_ROUTERS 4
+#define ROUTER_IDEN_OFFSET ('97' + NUM_ROUTERS)
+
+const * char const ROUTING_TABLE[ROUTER_IDEN_OFFSET] = { '127.0.0.1', 'other1', 'other2', 'other3' };
 
 void diep(char* s);
 void *handle_request_t(void *socket);
@@ -56,25 +60,6 @@ void *handle_request_t(void *socket)
 }
 
 /**
- * Reverse the characters in the buffer.
- *
- * params:
- *   buffer - an array of characters
- *   len - the length of the array
- */
-void reverse(char *buffer, size_t len) 
-{
-  size_t i, j;
-  int temp = 0;
-  for( i = 0, j = len - 1; i < j; ++i, --j ) 
-  {
-    temp = buffer[i];
-    buffer[i] = buffer[j];
-    buffer[j] = temp;
-  } 
-}
-
-/**
  * Print the error and quit.
  *
  * params:
@@ -96,7 +81,7 @@ int main(int argc, char *argv[])
 	// obtain a socket for the server
     if( (server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
 	{
-        diep("server - socket()");
+        diep("server - socket() in main");
 	}
 
     memset(&server_info, 0, sizeof server_info);
@@ -107,13 +92,13 @@ int main(int argc, char *argv[])
 	// bind the server to port
     if( bind(server_socket, (struct sockaddr*)&server_info, sizeof server_info) == -1 ) 
 	{
-		diep("server - bind()");
+		diep("server - bind() in main");
 	} 
 
 	// listen for incoming connections
     if( listen(server_socket, BACKLOG) == -1 ) 
 	{
-		diep("server - listen()");
+		diep("server - listen() in main");
 	}
 
     printf("server is listening...\n");
