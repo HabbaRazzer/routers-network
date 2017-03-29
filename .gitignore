@@ -2,3 +2,9 @@ ClientServer/bin
 ClientServer/.project
 ClientServer/.classpath
 ClientServer/.settings
+java/src/*.swp
+java/src/*.swo
+
+c/*.swp
+c/*.swo
+

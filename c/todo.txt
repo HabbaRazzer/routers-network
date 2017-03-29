@@ -3,6 +3,6 @@
 	// send messages to client, two routers
 	// need to ensure message has not been corrupted by looking at checksum
 		// discard messages that are corrupted
-	// needs a routing table to determine where to send a message
+	// needs a routing table to determine where to send a message (DONE)
 	// print source, destination, and contents of message to stdout
 

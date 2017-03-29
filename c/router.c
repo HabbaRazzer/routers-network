@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <time.h> 
 #include <pthread.h>
+#include 'router_funcs.h'
 
 #define MAX_BUFFER_SIZE 5
 #define PORT 4446

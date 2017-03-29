@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <time.h> 
 #include <pthread.h>
+#include 'router_funcs.h'
 
 #define MAX_BUFFER_SIZE 5
 #define SOURCE_OFFSET 0
@@ -27,8 +28,6 @@ const char * const CLIENT_ADDRS[] = { };
 size_t current_value = 1;
 
 void diep(char* s);
-void calc_checksum(unsigned char* message);
-bool is_not_corrupt(unsigned char* message);
 void *handle_message(void* socket);
 void *send_message(void);
 
@@ -71,30 +70,6 @@ void *handle_message(void* socket)
       diep("client - send() inside handle_message thread");
     }
   }
-}
-
-/**
- * Calculates the checksum.
- */
-void calc_checksum(unsigned char* message)
-{
-    unsigned char sum = message[SOURCE_OFFSET] + message[DEST_OFFSET] + message[DATA_OFFSET] + 
-        message[DATA_OFFSET+1];
-    unsigned char checksum = ~sum;
-    message[CHECK_OFFSET] = checksum;
-}
-
-/**
- * Checks the message to see if it is corrupted.
- *
- * return:
- *   true if not corrupted
- */
-bool is_not_corrupt(unsigned char* message)
-{
-    unsigned char sum = message[SOURCE_OFFSET] + message[DEST_OFFSET] + message[CHECK_OFFSET] + 
-        message[DATA_OFFSET] + message[DATA_OFFSET+1];
-    return ~sum == 0;
 }
 
 /**
