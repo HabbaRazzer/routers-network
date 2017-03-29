@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS = -Wall -g -pthread
+CFLAGS = -std=c99 -Wall -g -pthread
 OBJ = router.o client.o
 
 all: client router

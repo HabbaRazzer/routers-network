@@ -19,9 +19,9 @@
 #define PORT 4446
 #define BACKLOG 10
 #define NUM_ROUTERS 4
-#define ROUTER_IDEN_OFFSET ('97' + NUM_ROUTERS)
+#define TABLE_LEN ('a' + NUM_ROUTERS)
 
-const * char const ROUTING_TABLE[ROUTER_IDEN_OFFSET] = { '127.0.0.1', 'other1', 'other2', 'other3' };
+const * char const ROUTING_TABLE[TABLE_LEN] = { ['a'] = "127.0.0.1", ['b'] = "other1", ['c'] = "other2", ['d'] = "other3" };
 
 void *handle_request_t(void *socket);
 void reverse(char *buffer, size_t len);
