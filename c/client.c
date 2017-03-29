@@ -102,13 +102,32 @@ bool is_not_corrupt(unsigned char* message)
  */
 void *send_message(void) 
 {
-  // every two seconds - send message to client randomly selected
-	// pick random client
+    srand((unsigned)time(NULL));
+    int counter = 1;
+    int value;
+    
+    while(1)// loop
+    {
 	// connect to router
-	// package message
+
+        value = (rand()%3);// pick random client
+
+        unsigned char message[MAX_BUFFER_SIZE];
+        message[SOURCE_OFFSET] = *ROUTER_ADDR;
+        message[DEST_OFFSET] = *CLIENT_ADDRS[value];
+        message[DATA_OFFSET] = counter;
+        message[DATA_OFFSET + 1] = counter;
+        calc_checksum(message);// package message
+
+        printf("Message form c client #1: %c, %c, %d, %d, %d \n", message[SOURCE_OFFSET], message[DEST_OFFSET], 
+                        message[DATA_OFFSET], message[DATA_OFFSET+1], message[CHECK_OFFSET]);// print data + destination to stdout
+
 	// send message to router
-	// print data + destination to stdout
-	// loop
+
+        counter++;
+        fflush(stdout);
+        sleep(2); // every two seconds - send message to client randomly selected
+    }
 }
 
 /**

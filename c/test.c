@@ -55,31 +55,24 @@ void *send_message(void)
     int counter = 1;
     int value;
     
-    while(1)
+    while(1)// loop
     {
-        value = (rand()%3);
+	// connect to router
+        value = (rand()%3);// pick random client
         unsigned char message[MAX_BUFFER_SIZE];
         message[SOURCE_OFFSET] = *ROUTER_ADDR;
         message[DEST_OFFSET] = *CLIENT_ADDRS[value];
         message[DATA_OFFSET] = counter;
         message[DATA_OFFSET + 1] = counter;
-        calc_checksum(message);
+        calc_checksum(message);// package message
 
         printf("Message form c client #1: %c, %c, %d, %d, %d \n", message[SOURCE_OFFSET], message[DEST_OFFSET], 
-                        message[DATA_OFFSET], message[DATA_OFFSET+1], message[CHECK_OFFSET]);
+                        message[DATA_OFFSET], message[DATA_OFFSET+1], message[CHECK_OFFSET]);// print data + destination to stdout
         counter++;
-        fflush(stdout);
-        sleep(2);
-    }
-
-
-  // every two seconds - send message to client randomly selected
-	// pick random client
-	// connect to router
-	// package message
 	// send message to router
-	// print data + destination to stdout
-	// loop
+        fflush(stdout);
+        sleep(2); // every two seconds - send message to client randomly selected
+    }
 }
 
 
