@@ -5,6 +5,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * This is a multi-threaded server implementation that receives a String from the
@@ -53,54 +55,18 @@ public class JavaServer implements Runnable {
 			 byte[] data = new byte[5];
 			 int count = stream.read(data);
 			 
-			 byte checksum = (byte) ~data[2];
+			 ByteBuffer bb = ByteBuffer.allocate(2);
+			 bb.order(ByteOrder.LITTLE_ENDIAN);
+			 bb.put(data[3]);
+			 bb.put(data[4]);
+			 short counter = bb.getShort(0);
 			 
-			 //String route = getRoute(data[1]);
+			 System.out.println("Data:");
+			 System.out.println("Source:"+(char)data[0]);
+			 System.out.println("Destination:"+(char)data[1]);
+			 System.out.println("Checksum:"+data[2]);
+			 System.out.println("Data:"+counter);
 			 
-			 //System.out.println(route +" "+"Here");
-			 
-		     //Socket s = new Socket(route, 8000);
-
-		     //PrintWriter output = new PrintWriter(s.getOutputStream(), true);
-
-		     //output.print(data);
-		     //output.flush();
-			 System.out.print((char)data[0]);
-			 System.out.print((char)data[1]);
-
-		     //s.close();
-			 //Define the PrintWriter to write output to the server
-			 //PrintWriter output = new PrintWriter(this.socket.getOutputStream(), true);
-		     //Define the BufferedReader to get the input from the server
-			 //BufferedReader input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-			 //System.out.println("Testing");
-			 //while(input != null)
-			 //{
-				 //String temp = input.readLine();
-				 //System.out.println("Blank" + temp);
-				 //if(temp != null)
-				 //{
-					 //if(temp.isEmpty())
-					 //{
-					//	 System.out.println("Blank" + temp);
-					 //}
-					 //else
-					// {
-						// System.out.println(temp.);
-					// }
-				// }
-				//		 temp = input.readLine();
-				//		 output.printf(temp+"\n");
-				//	 }	 
-				//	 else
-				//	 {
-				//		 temp = new StringBuilder(temp).reverse().toString();
-				////		 temp = temp.replace("\n", "").replace("\r", "");
-						 //System.out.println(temp);
-				//		 output.printf(temp+"\n");
-				//	 }
-				 //}
-			// }
          }
 		 catch (IOException e)
 		 {

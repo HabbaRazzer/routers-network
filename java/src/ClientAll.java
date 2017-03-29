@@ -14,9 +14,9 @@ public class ClientAll
 		serverThread.start();
 
 		byte destination = 'a';
-		byte source = 'b';
+		byte source = 'a';
 		byte checksum = 0;
-		byte[] data = new byte[2];
+		short data = 0;
 
 		while(true)
 		{
@@ -28,14 +28,18 @@ public class ClientAll
 	        //Define the BufferedReader to get the input from the server
 	        BufferedReader input = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
-	        checksum = (byte) ('b'+'b'+data[0]+data[1]);
+	        //checksum = (byte) ('b'+'b'+data);
 
-	        data[1]++;
-	        
+	        data++;
+	        //data[1] = (byte)counter++;
+	        //data[1] = data[1]++;
+	        System.out.println("Counter:"+data);
 	        destination = randomizeClient();
-	        output.print(source + destination + checksum + data[0] + data[1]);
+	        output.write(source);
+	        output.write(destination);
+	        output.write(checksum);
+	        output.write(data);
 	        output.flush();
-
 	        s.close();
 		}
 
@@ -48,7 +52,7 @@ public class ClientAll
 		//byte[] destinations = new byte[4];
 
 		//randomize i between 0 and 3
-		return 'A';
+		return 'a';
 		//return destinations[i];
 
 	}

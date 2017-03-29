@@ -3,6 +3,8 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class JavaRouter implements Runnable {
 	
@@ -47,18 +49,30 @@ public class JavaRouter implements Runnable {
 			 
 			 byte checksum = (byte) ~data[2];
 			 
-			 String route = getRoute(data[1]);
+			 ByteBuffer bb = ByteBuffer.allocate(2);
+			 bb.order(ByteOrder.LITTLE_ENDIAN);
+			 bb.put(data[3]);
+			 bb.put(data[4]);
+			 short counter = bb.getShort(0);
 			 
 			 System.out.println("Data:");
-			 System.out.print((data[0]));
-			 System.out.print(data[1]);
-			 System.out.print("");
+			 System.out.println("Source:"+(char)data[0]);
+			 System.out.println("Destination:"+(char)data[1]);
+			 System.out.println("Checksum:"+data[2]);
+			 System.out.println("Data:"+counter);
+
+			 
+			 String route = getRoute(data[1]);
+			 
 			 
 		     Socket s = new Socket(route, 8000);
 
 		     PrintWriter output = new PrintWriter(s.getOutputStream(), true);
 
-		     output.print(data);
+		     output.write(data[0]);
+		     output.write(data[1]);
+		     output.write(data[2]);
+		     output.write(counter);
 		     output.flush();
 		     
 
