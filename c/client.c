@@ -27,7 +27,6 @@ const char * const CLIENT_ADDRS[] = { };
 
 size_t current_value = 1;
 
-void diep(char* s);
 void *handle_message(void* socket);
 void *send_message(void);
 
@@ -103,18 +102,6 @@ void *send_message(void)
         fflush(stdout);
         sleep(2); // every two seconds - send message to client randomly selected
     }
-}
-
-/**
- * Print the error and quit.
- *
- * params:
- *  s - a string describing error / exception / problem
- */
-void diep(char* s)
-{
-    perror(s);
-    exit(1);
 }
 
 int main(int argc, char *argv[])

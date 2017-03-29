@@ -3,6 +3,19 @@
  * CSC434 - Computer Networks
  * Routing-Network (C Implementation) Helpful Functions (implementation) 
  */
+#include 'router_funcs.h'
+
+/**
+ * Print the error and quit.
+ *
+ * params:
+ *  message - a string describing error / exception / problem
+ */
+void diep(char* message)
+{
+    perror(message);
+    exit(1);
+}
 
 /**
  * Calculates the checksum.

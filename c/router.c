@@ -24,7 +24,6 @@
 
 const * char const ROUTING_TABLE[ROUTER_IDEN_OFFSET] = { '127.0.0.1', 'other1', 'other2', 'other3' };
 
-void diep(char* s);
 void *handle_request_t(void *socket);
 void reverse(char *buffer, size_t len);
 
@@ -58,18 +57,6 @@ void *handle_request_t(void *socket)
       diep("server - send()");
     }
   }
-}
-
-/**
- * Print the error and quit.
- *
- * params:
- *  s - a string describing error / exception / problem
- */
-void diep(char* s)
-{
-    perror(s);
-    exit(1);
 }
 
 int main(int argc, char *argv[])
