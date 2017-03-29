@@ -10,7 +10,7 @@ public class JavaServerRunner implements Runnable{
         ServerSocket listener;
 		try {
 
-			listener = new ServerSocket(8080);
+			listener = new ServerSocket(8000);
 			System.out.println("Listening");
 	        try
 	        {
