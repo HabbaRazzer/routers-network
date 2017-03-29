@@ -16,7 +16,6 @@
 #include <pthread.h>
 #include 'router_funcs.h'
 
-#define MAX_BUFFER_SIZE 5
 #define PORT 4446
 #define BACKLOG 10
 #define NUM_ROUTERS 4

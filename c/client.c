@@ -16,11 +16,6 @@
 #include <pthread.h>
 #include 'router_funcs.h'
 
-#define MAX_BUFFER_SIZE 5
-#define SOURCE_OFFSET 0
-#define DEST_OFFSET 1
-#define CHECK_OFFSET 2
-#define DATA_OFFSET 3
 #define ROUTER_ADDR "127.0.0.1"
 
 const char * const CLIENT_ADDRS[] = { };
