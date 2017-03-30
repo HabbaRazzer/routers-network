@@ -1,12 +1,7 @@
-import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  * This is a multi-threaded server implementation that receives a String from the
@@ -51,15 +46,18 @@ public class JavaServer implements Runnable {
 	{
 		 try 
 		 {
-			 InputStream stream = socket.getInputStream();
-			 byte[] data = new byte[5];
-			 int count = stream.read(data);
+			 DataInputStream stream = new DataInputStream(socket.getInputStream());
+			 byte[] data = new byte[3];
+			 data[0] = stream.readByte();
+			 data[1] = stream.readByte();
+			 data[2] = stream.readByte();
+			 short counter = stream.readShort();
 			 
-			 ByteBuffer bb = ByteBuffer.allocate(2);
-			 bb.order(ByteOrder.LITTLE_ENDIAN);
-			 bb.put(data[3]);
-			 bb.put(data[4]);
-			 short counter = bb.getShort(0);
+			 if(~(byte)(data[0]+data[1]+counter) != (byte) ~data[2])
+			 {
+				 System.exit(1);
+			 }
+			 
 			 
 			 System.out.println("Data:");
 			 System.out.println("Source:"+(char)data[0]);

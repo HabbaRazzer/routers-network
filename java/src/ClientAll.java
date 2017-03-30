@@ -1,7 +1,8 @@
-import java.io.BufferedReader;
+//import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+//import java.io.InputStreamReader;
+//import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -13,32 +14,27 @@ public class ClientAll
 		Thread serverThread = new Thread(new JavaServerRunner());
 		serverThread.start();
 
-		byte destination = 'a';
-		byte source = 'a';
-		byte checksum = 0;
-		short data = 0;
+		byte destination = 'A';
+		byte source = 'A';
+		byte checksum;
+		short data = 120;
 
 		while(true)
 		{
-			Thread.sleep(10000);
+			Thread.sleep(2000);
 			String routerAddress = "127.0.0.1";
 	        Socket s = new Socket(routerAddress, 8080);
 	        //Define the PrintWriter to write output to the server
-	        PrintWriter output = new PrintWriter(s.getOutputStream(), true);
-	        //Define the BufferedReader to get the input from the server
-	        BufferedReader input = new BufferedReader(new InputStreamReader(s.getInputStream()));
-
-	        //checksum = (byte) ('b'+'b'+data);
-
+	        DataOutputStream output = new DataOutputStream(s.getOutputStream());
+	        
 	        data++;
-	        //data[1] = (byte)counter++;
-	        //data[1] = data[1]++;
-	        System.out.println("Counter:"+data);
+	        checksum = (byte)(source + destination + data);
+
 	        destination = randomizeClient();
-	        output.write(source);
-	        output.write(destination);
-	        output.write(checksum);
-	        output.write(data);
+	        output.writeByte(source);
+	        output.writeByte(destination);
+	        output.writeByte(checksum);
+	        output.writeShort(data);
 	        output.flush();
 	        s.close();
 		}
@@ -52,7 +48,7 @@ public class ClientAll
 		//byte[] destinations = new byte[4];
 
 		//randomize i between 0 and 3
-		return 'a';
+		return 'A';
 		//return destinations[i];
 
 	}

@@ -1,10 +1,9 @@
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+
 
 public class JavaRouter implements Runnable {
 	
@@ -43,17 +42,17 @@ public class JavaRouter implements Runnable {
 	{
 		 try 
 		 {
-			 InputStream stream = socket.getInputStream();
-			 byte[] data = new byte[5];
-			 int count = stream.read(data);
+			 DataInputStream stream = new DataInputStream(socket.getInputStream());
+			 byte[] data = new byte[3];
+			 data[0] = stream.readByte();
+			 data[1] = stream.readByte();
+			 data[2] = stream.readByte();
+			 short counter = stream.readShort();
 			 
-			 byte checksum = (byte) ~data[2];
-			 
-			 ByteBuffer bb = ByteBuffer.allocate(2);
-			 bb.order(ByteOrder.LITTLE_ENDIAN);
-			 bb.put(data[3]);
-			 bb.put(data[4]);
-			 short counter = bb.getShort(0);
+			 if(~(byte)(data[0]+data[1]+counter) != (byte) ~data[2])
+			 {
+				 System.exit(1);
+			 }
 			 
 			 System.out.println("Data:");
 			 System.out.println("Source:"+(char)data[0]);
@@ -61,20 +60,18 @@ public class JavaRouter implements Runnable {
 			 System.out.println("Checksum:"+data[2]);
 			 System.out.println("Data:"+counter);
 
-			 
 			 String route = getRoute(data[1]);
 			 
 			 
 		     Socket s = new Socket(route, 8000);
 
-		     PrintWriter output = new PrintWriter(s.getOutputStream(), true);
+		     DataOutputStream output = new DataOutputStream(s.getOutputStream());
 
-		     output.write(data[0]);
-		     output.write(data[1]);
-		     output.write(data[2]);
-		     output.write(counter);
+		     output.writeByte(data[0]);
+		     output.writeByte(data[1]);
+		     output.writeByte(data[2]);
+		     output.writeShort(counter);
 		     output.flush();
-		     
 
 		     s.close();
          }
@@ -86,7 +83,7 @@ public class JavaRouter implements Runnable {
 	
 	public String getRoute(byte destination)
 	{
-		if(destination == 'a')
+		if(destination == 1)
 		{
 			return "127.0.0.1";
 		}
