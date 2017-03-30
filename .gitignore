@@ -8,3 +8,4 @@ java/src/*.swo
 c/*.swp
 c/*.swo
 
+/bin/
