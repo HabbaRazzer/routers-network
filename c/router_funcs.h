@@ -3,8 +3,8 @@
  * CSC434 - Computer Networks
  * Routing-Network (C Implementation) Helpful Functions (header) 
  */
-#ifndef ROUTER_FUNCS.H
-#define ROUTER_FUNCS.H
+#ifndef ROUTER_FUNCS
+#define ROUTER_FUNCS
 
 #define MAX_BUFFER_SIZE 5
 #define SOURCE_OFFSET 0

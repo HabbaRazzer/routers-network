@@ -3,7 +3,9 @@
  * CSC434 - Computer Networks
  * Routing-Network (C Implementation) Helpful Functions (implementation) 
  */
-#include 'router_funcs.h'
+#include <stdlib.h>
+#include <stdbool.h>
+#include "router_funcs.h"
 
 /**
  * Print the error and quit.
