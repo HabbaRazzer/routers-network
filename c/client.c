@@ -37,38 +37,40 @@ void *send_message(void *socket);
  */
 void *handle_message(void *socket)
 {
+    unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
+    int status;
+    int client_socket = *((int *)socket);
+
     while (1)
     {
-        unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
-        int status;
-        int client_socket = *((int *)socket);
-        if ((status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1)
+        if (recv(client_socket, recv_buffer, sizeof recv_buffer, 0))
         {
-            diep("client - recv() inside handle_message thread");
+            if ((status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1)
+            {
+                diep("client - recv() inside handle_message thread");
+            }
+
+            if (status == 0)
+            {
+                // roter has closed the connection
+                pthread_exit(NULL);
+            }
+
+            // corruption check
+            bool not_corrupt = 1; //is_not_corrupt(recv_buffer);
+
+            // print the contents of the message
+            if (not_corrupt)
+            {
+                printf("Message recieved: %d,%d, source - %c \n", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1],
+                       recv_buffer[SOURCE_OFFSET]);
+            }
+
+            if (send(client_socket, recv_buffer, sizeof recv_buffer, 0) == -1)
+            {
+                diep("client - send() inside handle_message thread");
+            }
         }
-
-        if (status == 0)
-        {
-            // roter has closed the connection
-            pthread_exit(NULL);
-        }
-
-        // corruption check
-        bool not_corrupt = 1;//is_not_corrupt(recv_buffer);
-
-        // print the contents of the message
-        if (not_corrupt)
-        {
-            printf("Data from router- %d,%d, source - %c \n", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1],
-                   recv_buffer[SOURCE_OFFSET]);
-        }
-
-        if (send(client_socket, recv_buffer, sizeof recv_buffer, 0) == -1)
-        {
-            diep("client - send() inside handle_message thread");
-        }
-
-        sleep(2);
     }
 }
 
@@ -93,7 +95,7 @@ void *send_message(void *socket)
         message[DATA_OFFSET + 1] = counter;
         calc_checksum(message); // package message
 
-        printf("Message of c client %c: %c, %c, %d, %d, %d \n", *CLIENT, message[SOURCE_OFFSET], message[DEST_OFFSET],
+        printf("Message Sent: %c, %c, %d, %d, %d \n", message[SOURCE_OFFSET], message[DEST_OFFSET],
                message[DATA_OFFSET], message[DATA_OFFSET + 1], message[CHECK_OFFSET]); // print data + destination to stdout
 
         if (send(router_socket, message, sizeof message, 0) == -1)
