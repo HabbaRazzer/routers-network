@@ -61,7 +61,6 @@ void *handle_request_t(void *socket)
     }
 }
 
-
 /**
  * Router request handler.
  *
@@ -96,40 +95,59 @@ void *handle_request_t(void *socket)
 
 int main(int argc, char *argv[])
 {
-    int server_socket = 0;
+    int client_socket = 0;
+    int router_socket = 0;
 
     struct sockaddr_in server_info;
+    struct sockaddr_in router_info;
     struct sockaddr_in client_info; 
 
-	// obtain a socket for the server
-    if( (server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
+	// obtain a socket for the client connection
+    if( (client_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
 	{
         diep("router - socket() in main");
 	}
+    
+    // obtain a socket for the router connections
+    if( (router_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
+    {
+        diep("router - socket() in main");
+    }
 
     memset(&server_info, 0, sizeof server_info);
     server_info.sin_family = AF_INET;
     server_info.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_info.sin_port = htons(PORT);
+    server_info.sin_port = htons(CLIENT_PORT);
 
-	// bind the server to port
-    if( bind(server_socket, (struct sockaddr*)&server_info, sizeof server_info) == -1 ) 
+    memset(&router_info, 0, sizeof router_info);
+    router_info.sin_family = AF_INET;
+    router_info.sin_addr.s_addr = htonl(INADDR_ANY);
+    router_info.sin_port = htons(ROUTER_PORT);
+
+	// bind the server to client port
+    if( bind(client_socket, (struct sockaddr*)&server_info, sizeof server_info) == -1 ) 
 	{
 		diep("router - bind() in main");
 	} 
 
+    // bind the server to routers port
+    if( bind(router_socket, (struct sockaddr*)&router_info, sizeof router_info) == -1 )
+    {
+        diep("router - bind() in main");
+    }
+
 	// listen for incoming connections
-    if( listen(server_socket, BACKLOG) == -1 ) 
+    if( listen(client_socket, BACKLOG) == -1 ) 
 	{
 		diep("router - listen() in main");
 	}
 
-    printf("router is listening...\n");
+    printf("router is listening on ports %d and %d...\n", CLIENT_PORT, ROUTER_PORT);
     while(1)
     {
         // accept request and create new thread to service that request
         int client_len = sizeof client_info;
-        int connection_socket = accept(server_socket, (struct sockaddr*)&client_info, 
+        int connection_socket = accept(client_socket, (struct sockaddr*)&client_info, 
             (socklen_t*)&client_len); 
 
         printf("accepted\n");
