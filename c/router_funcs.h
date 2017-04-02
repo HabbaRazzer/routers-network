@@ -1,7 +1,7 @@
 /*
  * Nick Martinez, Robert Windisch, Stephen Clabaugh, Darnell Martin
  * CSC434 - Computer Networks
- * Routing-Network (C Implementation) Helpful Functions (header) 
+ * Routing-Network (C Implementation) Helpful Functions (header)
  */
 #ifndef ROUTER_FUNCS
 #define ROUTER_FUNCS
@@ -17,4 +17,3 @@ void calc_checksum(unsigned char* message);
 bool is_not_corrupt(unsigned char* message);
 
 #endif
-
