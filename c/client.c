@@ -57,7 +57,7 @@ void *handle_message(void *socket)
             }
 
             // corruption check
-            bool not_corrupt = 1; //is_not_corrupt(recv_buffer);
+            bool not_corrupt = is_not_corrupt(recv_buffer);
 
             // print the contents of the message
             if (not_corrupt)
