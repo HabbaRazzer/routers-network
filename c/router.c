@@ -26,16 +26,17 @@ const * char const ROUTING_TABLE[TABLE_LEN] = { ['A'] = "127.0.0.1", ['B'] = "ot
     ['C'] = "other2", ['D'] = "other3" };
 
 void *handle_request_t(void *socket);
-void reverse(char *buffer, size_t len);
+void route_message(const char* message);
 
 /**
  * Client request handler.
  *
  * params:
- *  socket - the socket interface to the client connection
+ *   socket - the socket interface to the client connection
  */
 void *handle_request_t(void *socket)
 {
+    // maintain connection with client until client disconnects
     while( 1 )
     {
         char recv_buffer[MAX_BUFFER_SIZE] = {0};
@@ -55,14 +56,48 @@ void *handle_request_t(void *socket)
         // check that the message has not been corrupted
         if( is_not_corrupt(recv_buffer[CHECK_OFFSET]) )
         {
+            // ok - not corrupted. route and print message header + data
+            route_message(recv_buffer);
             printf("Source - %c, Destination - %c, Message - %d%d\n", recv_buffer[SOURCE_OFFSET],
                 recv_buffer[DEST_OFFSET], recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET+1]);
         }
+        printf("Message corrupted.\n");
+    }
+}
 
-        if( send(client_socket, recv_buffer, sizeof recv_buffer, 0) == -1 )
-        {
-            diep("router - send() in handle_request_t");
-        }
+/**
+ * Determines where to send a client message and sends it.
+ *
+ * params:
+ *   message - the message to be routed
+ */
+void route_message(const char* message)
+{
+    int router_socket = 0;
+
+    struct sockaddr_in router_info;
+
+    if( (router_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
+	{
+        diep("router - socket() in route_message");
+	}
+
+    char* destination = ROUTING_TABLE[message[DEST_OFFSET]];
+    memset(&server_info, 0, sizeof(router_info));
+    router_info.sin_family = AF_INET;
+    router_info.sin_addr.s_addr = inet_addr(destination);
+    router_info.sin_port = htons(ROUTER_PORT);
+
+    // establish connection with neighboring router
+    if( connect(router_socket, (struct sockaddr*)&router_info, sizeof(router_info)) == -1 )
+	{
+        diep("router - connect() in route_message");
+	}
+
+    // send message
+    if( send(router_socket, message, sizeof message, 0) == -1 )
+    {
+        diep("router - send() in route_message");
     }
 }
 
