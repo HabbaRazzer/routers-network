@@ -34,7 +34,7 @@ void route_message(const char* message);
  * params:
  *   socket - the socket interface to the client connection
  */
-void *handle_request_t(void *socket)
+void *handle_client_t(void *socket)
 {
     // maintain connection with client until client disconnects
     while( 1 )
@@ -105,9 +105,9 @@ void route_message(const char* message)
  * Router request handler.
  *
  * params:
- *  socket - the socket interface to the router connection
+ *   socket - the socket interface to the router connection
  */
-void *handle_request_t(void *socket)
+void *handle_router_t(void *socket)
 {
     // this thread will accept messages from the local client or it's neighboring routers
     while( 1 )
@@ -132,6 +132,7 @@ void *handle_request_t(void *socket)
             diep("router - send() in handle_request_t");
         }
     }
+}
 
 int main(int argc, char *argv[])
 {
@@ -189,23 +190,59 @@ int main(int argc, char *argv[])
     }
 
     printf("router is listening on ports %d and %d...\n", CLIENT_PORT, ROUTER_PORT);
-    while(1)
-    {
-        // accept request and create new thread to service that request
-        int client_len = sizeof client_info;
-        int connection_socket = accept(client_socket, (struct sockaddr*)&client_info,
-            (socklen_t*)&client_len);
 
-        printf("accepted\n");
-        pthread_t thread;
-        int status = 0;
-        if( (status = pthread_create(&thread, NULL, handle_request_t, (void *)&connection_socket)) != 0 )
+    fd_set readfds;
+    struct timeval tv = { .tv_sec = 8, .tv_usec = 500000};
+
+    FD_ZERO(&readfds);
+    FD_SET(client_socket, &readfds);
+    FD_SET(router_socket, &readfds);
+
+    while( 1 )
+    {
+        if( select(router_socket + 1, &readfds, NULL, NULL, &tv) == -1 )
         {
-          fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
-          exit(1);
+            diep("router - select() in main");
         }
-     }
+
+        for( size_t i = 0; i < router_socket + 1; ++i )
+        {
+            if( FD_SET(i, &readfds) )
+            {
+                // client is connecting
+                if( i == client_socket )
+                {
+                    int client_len = sizeof client_info;
+                    int new_socket = accept(client_socket, (struct sockaddr*)&client_info,
+                        (socklen_t*)&client_len);
+
+                    pthread_t thread;
+                    int status = 0;
+                    if( (status = pthread_create(&thread, NULL, handle_client_t, (void *)&new_socket)) != 0 )
+                    {
+                        fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
+                        exit(1);
+                    }
+                }
+
+                // router is connecting
+                if( i == router_socket )
+                {
+                    int router_len = sizeof router_info;
+                    int new_socket = accept(router_socket, (struct sockaddr*)&router_info,
+                        (socklen_t*)&router_len);
+
+                    pthread_t thread;
+                    int status = 0;
+                    if( (status = pthread_create(&thread, NULL, handle_router_t, (void *)&new_socket)) != 0 )
+                    {
+                        fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
+                        exit(1);
+                    }
+                }
+            }
+        }
+    }
 
 	return EXIT_SUCCESS;
 }
-
