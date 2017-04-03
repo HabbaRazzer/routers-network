@@ -20,6 +20,8 @@ public class JavaServer implements Runnable {
 
 	/**
      * Main method to run the server
+	 * @param args - arguments
+	 * @throws IOException - Shouldn't
      */
     public static void main(String[] args) throws IOException
     {
@@ -55,16 +57,18 @@ public class JavaServer implements Runnable {
 			 data[2] = stream.readByte();
 			 short counter = stream.readShort();
 
-			 if(~(byte)(data[0]+data[1]+counter) != (byte) ~data[2])
+			 int checksum = data[0]+data[1]+counter;
+
+			 if(checksum+data[2] != 255)
 			 {
-				 System.exit(1);
+				 System.out.println("Error: Message Checksum Failed");
+				 return;
 			 }
 
-
-			 System.out.println("Data:");
+			 System.out.println("------Client-------");
 			 System.out.println("Source:"+(char)data[0]);
 			 System.out.println("Destination:"+(char)data[1]);
-			 System.out.println("Checksum:"+data[2]);
+			 System.out.println("Checksum:"+Integer.toBinaryString(data[2]));
 			 System.out.println("Data:"+counter);
 
          }

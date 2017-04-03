@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
-public class JavaRouter implements Runnable {
+/**
+ * This class is the Java implementation of the Router
+ * @author Darnell Martin & Stephen Clabaugh
+ */
+public class JavaRouter implements Runnable
+{
 
 	Socket socket;
 	JavaRouter(Socket newSocket)
@@ -17,6 +21,8 @@ public class JavaRouter implements Runnable {
      * Main method to run the router
      * Creates a socket for every connection request and runs the router code on that thread
      * Sends new message to new destination
+	 * @param args - arguments
+	 * @throws IOException - shouldn't
      */
     public static void main(String[] args) throws IOException
     {
@@ -52,16 +58,18 @@ public class JavaRouter implements Runnable {
 			 data[1] = stream.readByte();
 			 data[2] = stream.readByte();
 			 short counter = stream.readShort();
+			 int checksum = data[0]+data[1]+counter;
 
-			 if(~(byte)(data[0]+data[1]+counter) != (byte) ~data[2])
+			 if(checksum+data[2] != 255)
 			 {
-				 System.exit(1);
+				 System.out.println("Error: Message Checksum Failed");
+				 return;
 			 }
 
-			 System.out.println("Data:");
+			 System.out.println("------Router-------");
 			 System.out.println("Source:"+(char)data[0]);
 			 System.out.println("Destination:"+(char)data[1]);
-			 System.out.println("Checksum:"+data[2]);
+			 System.out.println("Checksum:"+Integer.toBinaryString(data[2]));
 			 System.out.println("Data:"+counter);
 
 			 String route = getRoute(data[1]);
@@ -85,22 +93,26 @@ public class JavaRouter implements Runnable {
 		 }
 	}
 
-	//Lookup table for new destination of the message
+	/**
+	 * Lookup table for new destination of the message
+	 * @param destination - Destination of the message
+	 * @return address of client
+	 */
 	public String getRoute(byte destination)
 	{
-		if(destination == 1)
+		if(destination == 'A')
 		{
 			return "127.0.0.1";
 		}
-		else if(destination == 'b')
+		else if(destination == 'B')
 		{
-			return "mctsomething1";
+			return "mctsomething";
 		}
-		else if(destination == 'c')
+		else if(destination == 'C')
 		{
 			return "mctsomething2";
 		}
-		else if(destination == 'd')
+		else if(destination == 'D')
 		{
 			return "mctsomething2";
 		}
