@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -22,7 +23,7 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char* const ROUTING_TABLE[TABLE_LEN] = { [65] = "mct263l24", [66] = "mct263l28", [67] = "other2", 
+char* const ROUTING_TABLE[TABLE_LEN] = { [65] = "127.0.0.1", [66] = "mct263l28", [67] = "other2", 
 	[68] = "other3" };
 
 void *handle_request_t(void *socket);
@@ -85,7 +86,7 @@ void route_message(const unsigned char* message)
     char* destination = ROUTING_TABLE[message[DEST_OFFSET]];
     memset(&router_info, 0, sizeof(router_info));
     router_info.sin_family = AF_INET;
-    router_info.sin_addr.s_addr = inet_addr(destination);
+    router_info.sin_addr.s_addr = inet_addr(gethostbyname(destination));
     router_info.sin_port = htons(CLIENT_PORT);
 
     // establish connection with neighboring router
