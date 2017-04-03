@@ -17,7 +17,6 @@
 #include "router_funcs.h"
 
 #define CLIENT_PORT 8000
-#define ROUTER_PORT 8080
 #define BACKLOG 10
 #define NUM_ROUTERS 4
 #define TABLE_LEN ('A' + NUM_ROUTERS)
@@ -101,46 +100,9 @@ void route_message(const char* message)
     }
 }
 
-/**
- * Router request handler.
- *
- * params:
- *   socket - the socket interface to the router connection
- */
-void *handle_router_t(void *socket)
-{
-    // this thread will accept messages from the local client or it's neighboring routers
-    while( 1 )
-    {
-        char recv_buffer[MAX_BUFFER_SIZE] = {0};
-        int status;
-        int client_socket = *((int*) socket);
-        if( (status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1 )
-        {
-            diep("router - recv() in handle_request_t");
-        }
-
-        if( status == 0 )
-        {
-            // client has closed the connection
-            pthread_exit(NULL);
-        }
-
-        reverse(recv_buffer, sizeof recv_buffer);
-        if( send(client_socket, recv_buffer, sizeof recv_buffer, 0) == -1 )
-        {
-            diep("router - send() in handle_request_t");
-        }
-    }
-}
-
 int main(int argc, char *argv[])
 {
     int client_socket = 0;
-    int router_socket = 0;
-
-    struct sockaddr_in server_info;
-    struct sockaddr_in router_info;
     struct sockaddr_in client_info;
 
 	// obtain a socket for the client connection
@@ -149,21 +111,10 @@ int main(int argc, char *argv[])
         diep("router - socket() in main");
 	}
 
-    // obtain a socket for the router connections
-    if( (router_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
-    {
-        diep("router - socket() in main");
-    }
-
     memset(&server_info, 0, sizeof server_info);
     server_info.sin_family = AF_INET;
     server_info.sin_addr.s_addr = htonl(INADDR_ANY);
     server_info.sin_port = htons(CLIENT_PORT);
-
-    memset(&router_info, 0, sizeof router_info);
-    router_info.sin_family = AF_INET;
-    router_info.sin_addr.s_addr = htonl(INADDR_ANY);
-    router_info.sin_port = htons(ROUTER_PORT);
 
 	// bind the server to client port
     if( bind(client_socket, (struct sockaddr*)&server_info, sizeof server_info) == -1 )
@@ -171,78 +122,26 @@ int main(int argc, char *argv[])
 		diep("router - bind() in main");
 	}
 
-    // bind the server to routers port
-    if( bind(router_socket, (struct sockaddr*)&router_info, sizeof router_info) == -1 )
-    {
-        diep("router - bind() in main");
-    }
-
 	// listen for incoming connections from client
     if( listen(client_socket, BACKLOG) == -1 )
 	{
 		diep("router - listen() in main");
 	}
 
-    // listen for incoming connections from routers
-    if( listen(router_socket, BACKLOG) == -1 )
-    {
-        diep("router listen() in main");
-    }
-
-    printf("router is listening on ports %d and %d...\n", CLIENT_PORT, ROUTER_PORT);
-
-    fd_set readfds;
-    struct timeval tv = { .tv_sec = 8, .tv_usec = 500000};
-
-    FD_ZERO(&readfds);
-    FD_SET(client_socket, &readfds);
-    FD_SET(router_socket, &readfds);
-
-    while( 1 )
-    {
-        if( select(router_socket + 1, &readfds, NULL, NULL, &tv) == -1 )
-        {
-            diep("router - select() in main");
-        }
-
-        for( size_t i = 0; i < router_socket + 1; ++i )
-        {
-            if( FD_SET(i, &readfds) )
-            {
-                // client is connecting
-                if( i == client_socket )
-                {
-                    int client_len = sizeof client_info;
-                    int new_socket = accept(client_socket, (struct sockaddr*)&client_info,
-                        (socklen_t*)&client_len);
-
-                    pthread_t thread;
-                    int status = 0;
-                    if( (status = pthread_create(&thread, NULL, handle_client_t, (void *)&new_socket)) != 0 )
-                    {
-                        fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
-                        exit(1);
-                    }
-                }
-
-                // router is connecting
-                if( i == router_socket )
-                {
-                    int router_len = sizeof router_info;
-                    int new_socket = accept(router_socket, (struct sockaddr*)&router_info,
-                        (socklen_t*)&router_len);
-
-                    pthread_t thread;
-                    int status = 0;
-                    if( (status = pthread_create(&thread, NULL, handle_router_t, (void *)&new_socket)) != 0 )
-                    {
-                        fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
-                        exit(1);
-                    }
-                }
-            }
-        }
-    }
+    printf("router is listening on port %d...\n", CLIENT_PORT);
+	
+	int client_len = sizeof client_info; 
+	int new_socket = accept(client_socket, (struct sockaddr*)&client_info, 
+		(socklen_t*)&client_len); 
+ 
+	// create a new thread to handle the client
+	pthread_t thread; 
+	int status = 0; 
+	if( (status = pthread_create(&thread, NULL, handle_client_t, (void *)&new_socket)) != 0 ) 
+	{ 
+		fprintf(stderr, "router - error creating thread in main! error code = %d\n", status); 
+		exit(1); 
+	} 
 
 	return EXIT_SUCCESS;
 }
