@@ -28,8 +28,8 @@ public class ClientAll
 		Thread serverThread = new Thread(new JavaServerRunner());
 		serverThread.start();
 
-		byte destination = 'A';
-		byte source = 'A';
+		byte destination = 'D';
+		byte source = 'C';
 		int checksum;
 		byte onesCompliment;
 		short data = 120;
@@ -55,8 +55,6 @@ public class ClientAll
 	        output.flush();
 	        s.close();
 		}
-
-
 	}
 
 	/**
@@ -71,7 +69,7 @@ public class ClientAll
 		int i = rand.nextInt(3);
 		destinations[i] = 0;
 
-		return 'A';
+		return 'D';
 		//return destinations[i];
 
 	}
