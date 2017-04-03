@@ -3,16 +3,26 @@
  * CSC434 - Computer Networks
  * Routing-Network (C Implementation) Router
 */
+#define _XOPEN_SOURCE 600
+
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
+#include <signal.h>
+#include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <stdarg.h>
 #include <time.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -84,10 +94,16 @@ void route_message(const unsigned char* message)
 	}
 
     char* destination = ROUTING_TABLE[message[DEST_OFFSET]];
-    memset(&router_info, 0, sizeof(router_info));
-    router_info.sin_family = AF_INET;
-    router_info.sin_addr.s_addr = inet_addr(gethostbyname(destination));
-    router_info.sin_port = htons(CLIENT_PORT);
+	struct addrinfo hints, *server_info;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	
+	int status = 0;
+	if( (status = getaddrinfo(destination, "8000", &hints, &server_info)) != 0)
+	{
+		diep("router - getaddrinfo() in route_message");
+	}
 
     // establish connection with neighboring router
     if( connect(router_socket, (struct sockaddr*)&router_info, sizeof(router_info)) == -1 )
