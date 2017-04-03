@@ -4,6 +4,11 @@ import java.net.Socket;
 
 public class JavaServerRunner implements Runnable{
 
+	/*
+	 * Class that creates a thread which runs javaServer in order to accept multiple
+	 * connections at once.
+	 */
+
 	@Override
 	public void run()
     {

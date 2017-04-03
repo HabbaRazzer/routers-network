@@ -6,41 +6,45 @@ import java.net.Socket;
 
 
 public class JavaRouter implements Runnable {
-	
+
 	Socket socket;
 	JavaRouter(Socket newSocket)
 	{
 		this.socket = newSocket;
 	}
-	
+
 	/**
-     * Main method to run the server
+     * Main method to run the router
+     * Creates a socket for every connection request and runs the router code on that thread
+     * Sends new message to new destination
      */
-    public static void main(String[] args) throws IOException 
+    public static void main(String[] args) throws IOException
     {
         ServerSocket listener = new ServerSocket(8080);
         System.out.println("Listening");
-        try 
+        try
         {
-            while (true) 
+            while (true)
             {
                 Socket clientSocket = listener.accept();
                 System.out.println("Connected");
                 new Thread(new JavaRouter(clientSocket)).start();
             }
         }
-        finally 
+        finally
         {
             listener.close();
         }
     }
     /**
-     * Run the server 
+     * Router Code:
+     * Reads in the bytes of the message and determines the destination using the lookup table.
+     * Writes over previous destination and sends message
      */
 	@Override
-	public void run() 
+	public void run()
 	{
-		 try 
+		 try
 		 {
 			 DataInputStream stream = new DataInputStream(socket.getInputStream());
 			 byte[] data = new byte[3];
@@ -48,12 +52,12 @@ public class JavaRouter implements Runnable {
 			 data[1] = stream.readByte();
 			 data[2] = stream.readByte();
 			 short counter = stream.readShort();
-			 
+
 			 if(~(byte)(data[0]+data[1]+counter) != (byte) ~data[2])
 			 {
 				 System.exit(1);
 			 }
-			 
+
 			 System.out.println("Data:");
 			 System.out.println("Source:"+(char)data[0]);
 			 System.out.println("Destination:"+(char)data[1]);
@@ -61,8 +65,8 @@ public class JavaRouter implements Runnable {
 			 System.out.println("Data:"+counter);
 
 			 String route = getRoute(data[1]);
-			 
-			 
+
+
 		     Socket s = new Socket(route, 8000);
 
 		     DataOutputStream output = new DataOutputStream(s.getOutputStream());
@@ -78,9 +82,10 @@ public class JavaRouter implements Runnable {
 		 catch (IOException e)
 		 {
 			e.printStackTrace();
-		 } 
+		 }
 	}
-	
+
+	//Lookup table for new destination of the message
 	public String getRoute(byte destination)
 	{
 		if(destination == 1)
@@ -104,6 +109,6 @@ public class JavaRouter implements Runnable {
 			return "127.0.0.1";
 		}
 	}
-	
+
 }
 
