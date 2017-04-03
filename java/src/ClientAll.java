@@ -5,12 +5,23 @@ import java.io.IOException;
 //import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Random;
+
+/*
+ * Client will sleep for 2 seconds and then send a message to another random client,
+ * the message will include the source, destination, checksum, and data for a total of 5 bytes,
+ * message data will be an integer that increments by one for every message that sends.
+ * Checksum is the sum of all other bytes and will be used by the routers to insure no corruption
+ * @author Darnell Martin & Stephen Clabaugh
+ */
 
 public class ClientAll
 {
 
 	public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException
 	{
+
+		//Creates thread of JavaServerRunner to listen for additional clients at one time.
 		Thread serverThread = new Thread(new JavaServerRunner());
 		serverThread.start();
 
@@ -26,10 +37,11 @@ public class ClientAll
 	        Socket s = new Socket(routerAddress, 8080);
 	        //Define the PrintWriter to write output to the server
 	        DataOutputStream output = new DataOutputStream(s.getOutputStream());
-	        
+
 	        data++;
 	        checksum = (byte)(source + destination + data);
 
+	        //Writes data to outgoing message
 	        destination = randomizeClient();
 	        output.writeByte(source);
 	        output.writeByte(destination);
@@ -42,12 +54,15 @@ public class ClientAll
 
 	}
 
+	//randomize client destination
 	public static byte randomizeClient()
 	{
-		//int i = 0;
-		//byte[] destinations = new byte[4];
+		int i = 0;
+		byte[] destinations = {'A', 'B', 'C', 'D'};
 
-		//randomize i between 0 and 3
+		//Random rand = new Random();
+		//int value = rand.nextInt(3);
+
 		return 'A';
 		//return destinations[i];
 
