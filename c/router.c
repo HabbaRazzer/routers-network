@@ -33,11 +33,11 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char* const ROUTING_TABLE[TABLE_LEN] = { [65] = "127.0.0.1", [66] = "mct263l28", [67] = "other2", 
+char* const ROUTING_TABLE[TABLE_LEN] = { [65] = "mct162l05", [66] = "mct162l07", [67] = "other2", 
 	[68] = "other3" };
 
 void *handle_request_t(void *socket);
-void route_message(const unsigned char* message);
+void route_message(unsigned char* message);
 
 /**
  * Client request handler.
@@ -71,8 +71,10 @@ void *handle_client_t(void *socket)
             route_message(recv_buffer);
             printf("Source - %c, Destination - %c, Message - %d%d\n", recv_buffer[SOURCE_OFFSET],
                 recv_buffer[DEST_OFFSET], recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET+1]);
-        }
-        printf("Message corrupted.\n");
+        } else 
+		{
+			printf("Message corrupted.\n");
+		}
     }
 }
 
@@ -82,9 +84,9 @@ void *handle_client_t(void *socket)
  * params:
  *   message - the message to be routed
  */
-void route_message(const unsigned char* message)
+void route_message(unsigned char* message)
 {
-    int router_socket = 0;
+   int router_socket = 0;
 
     struct sockaddr_in router_info;
 
@@ -94,16 +96,13 @@ void route_message(const unsigned char* message)
 	}
 
     char* destination = ROUTING_TABLE[message[DEST_OFFSET]];
-	struct addrinfo hints, *server_info;
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	
-	int status = 0;
-	if( (status = getaddrinfo(destination, "8000", &hints, &server_info)) != 0)
-	{
-		diep("router - getaddrinfo() in route_message");
-	}
+	struct hostent *h;
+	h = gethostbyname(destination);
+    memset(&router_info, 0, sizeof(router_info));
+    router_info.sin_family = AF_INET;
+	printf("%s\n", inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
+    router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
+	router_info.sin_port = htons(CLIENT_PORT);
 
     // establish connection with neighboring router
     if( connect(router_socket, (struct sockaddr*)&router_info, sizeof(router_info)) == -1 )
