@@ -72,10 +72,10 @@ public class JavaRouter implements Runnable
 			 System.out.println("Checksum:"+Integer.toBinaryString(data[2]));
 			 System.out.println("Data:"+counter);
 
-			 String route = getRoute(data[1]);
+			 String[] route = getRoute(data[1]);
 
-
-		     Socket s = new Socket(route, 8000);
+			 System.out.println(route);
+		     Socket s = new Socket(route[0], Integer.parseInt(route[1]));
 
 		     DataOutputStream output = new DataOutputStream(s.getOutputStream());
 
@@ -97,28 +97,29 @@ public class JavaRouter implements Runnable
 	 * Lookup table for new destination of the message
 	 * @param destination - Destination of the message
 	 * @return address of client
+	 * @notes Clients are on port 8000 and Routers are on port 8080
 	 */
-	public String getRoute(byte destination)
+	public String[] getRoute(byte destination)
 	{
 		if(destination == 'A')
 		{
-			return "127.0.0.1";
+			return new String[]{"127.0.0.1","8000"};
 		}
 		else if(destination == 'B')
 		{
-			return "mctsomething";
+			return new String[]{"127.0.0.1","8000"};
 		}
 		else if(destination == 'C')
 		{
-			return "mctsomething2";
+			return new String[]{"mct263l30","8000"};
 		}
 		else if(destination == 'D')
 		{
-			return "mctsomething2";
+			return new String[]{"mct263l29","8080"};
 		}
 		else
 		{
-			return "127.0.0.1";
+			return new String[]{"127.0.0.1","8000"};
 		}
 	}
 
