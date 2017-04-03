@@ -12,8 +12,25 @@
 #define CHECK_OFFSET 2
 #define DATA_OFFSET 3
 
+/**
+ * Print the error and quit.
+ *
+ * params:
+ *  message - a string describing error / exception / problem
+ */
 void diep(char* message);
+
+/**
+ * Calculates the checksum.
+ */
 void calc_checksum(unsigned char* message);
+
+/**
+ * Checks the message to see if it is corrupted.
+ *
+ * return:
+ *   true if not corrupted
+ */
 bool is_not_corrupt(unsigned char* message);
 
 #endif

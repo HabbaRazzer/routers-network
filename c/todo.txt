@@ -1,8 +1,8 @@
 -- ROUTER
-	// accept requests from client, two routers
-	// send messages to client, two routers
-	// need to ensure message has not been corrupted by looking at checksum
-		// discard messages that are corrupted
+	// accept requests from client, two routers (DONE)
+	// send messages to client, two routers (DONE)
+	// need to ensure message has not been corrupted by looking at checksum (DONE)
+		// discard messages that are corrupted (DONE)
 	// needs a routing table to determine where to send a message (DONE)
-	// print source, destination, and contents of message to stdout
+	// print source, destination, and contents of message to stdout (DONE)
 
