@@ -14,18 +14,19 @@
 #include <sys/types.h>
 #include <time.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include "router_funcs.h"
 
 #define CLIENT_PORT 8000
 #define BACKLOG 10
 #define NUM_ROUTERS 4
-#define TABLE_LEN ('A' + NUM_ROUTERS)
+#define TABLE_LEN 'A' + NUM_ROUTERS
 
-const * char const ROUTING_TABLE[TABLE_LEN] = { ['A'] = "127.0.0.1", ['B'] = "other1",
-    ['C'] = "other2", ['D'] = "other3" };
+char* const ROUTING_TABLE[TABLE_LEN] = { [65] = "127.0.0.1", [66] = "other1", [67] = "other2", 
+	[68] = "other3" };
 
 void *handle_request_t(void *socket);
-void route_message(const char* message);
+void route_message(const unsigned char* message);
 
 /**
  * Client request handler.
@@ -38,7 +39,7 @@ void *handle_client_t(void *socket)
     // maintain connection with client until client disconnects
     while( 1 )
     {
-        char recv_buffer[MAX_BUFFER_SIZE] = {0};
+        unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
         int status;
         int client_socket = *((int*) socket);
         if( (status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1 )
@@ -53,7 +54,7 @@ void *handle_client_t(void *socket)
         }
 
         // check that the message has not been corrupted
-        if( is_not_corrupt(recv_buffer[CHECK_OFFSET]) )
+        if( is_not_corrupt(recv_buffer) )
         {
             // ok - not corrupted. route and print message header + data
             route_message(recv_buffer);
@@ -70,7 +71,7 @@ void *handle_client_t(void *socket)
  * params:
  *   message - the message to be routed
  */
-void route_message(const char* message)
+void route_message(const unsigned char* message)
 {
     int router_socket = 0;
 
@@ -82,10 +83,10 @@ void route_message(const char* message)
 	}
 
     char* destination = ROUTING_TABLE[message[DEST_OFFSET]];
-    memset(&server_info, 0, sizeof(router_info));
+    memset(&router_info, 0, sizeof(router_info));
     router_info.sin_family = AF_INET;
     router_info.sin_addr.s_addr = inet_addr(destination);
-    router_info.sin_port = htons(ROUTER_PORT);
+    router_info.sin_port = htons(CLIENT_PORT);
 
     // establish connection with neighboring router
     if( connect(router_socket, (struct sockaddr*)&router_info, sizeof(router_info)) == -1 )
@@ -111,13 +112,14 @@ int main(int argc, char *argv[])
         diep("router - socket() in main");
 	}
 
-    memset(&server_info, 0, sizeof server_info);
-    server_info.sin_family = AF_INET;
-    server_info.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_info.sin_port = htons(CLIENT_PORT);
+	// set up for the port we want to listen on and other parameters
+    memset(&client_info, 0, sizeof client_info);
+    client_info.sin_family = AF_INET;
+    client_info.sin_addr.s_addr = htonl(INADDR_ANY);
+    client_info.sin_port = htons(CLIENT_PORT);
 
 	// bind the server to client port
-    if( bind(client_socket, (struct sockaddr*)&server_info, sizeof server_info) == -1 )
+    if( bind(client_socket, (struct sockaddr*)&client_info, sizeof client_info) == -1 )
 	{
 		diep("router - bind() in main");
 	}
@@ -130,6 +132,7 @@ int main(int argc, char *argv[])
 
     printf("router is listening on port %d...\n", CLIENT_PORT);
 	
+	// block until we get a connection request from a client, then accept it
 	int client_len = sizeof client_info; 
 	int new_socket = accept(client_socket, (struct sockaddr*)&client_info, 
 		(socklen_t*)&client_len); 
