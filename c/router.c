@@ -22,7 +22,7 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char* const ROUTING_TABLE[TABLE_LEN] = { [65] = "127.0.0.1", [66] = "other1", [67] = "other2", 
+char* const ROUTING_TABLE[TABLE_LEN] = { [65] = "mct263l24", [66] = "mct263l28", [67] = "other2", 
 	[68] = "other3" };
 
 void *handle_request_t(void *socket);
@@ -132,19 +132,22 @@ int main(int argc, char *argv[])
 
     printf("router is listening on port %d...\n", CLIENT_PORT);
 	
-	// block until we get a connection request from a client, then accept it
-	int client_len = sizeof client_info; 
-	int new_socket = accept(client_socket, (struct sockaddr*)&client_info, 
-		(socklen_t*)&client_len); 
- 
-	// create a new thread to handle the client
-	pthread_t thread; 
-	int status = 0; 
-	if( (status = pthread_create(&thread, NULL, handle_client_t, (void *)&new_socket)) != 0 ) 
-	{ 
-		fprintf(stderr, "router - error creating thread in main! error code = %d\n", status); 
-		exit(1); 
-	} 
+	while(1)
+	{
+		// block until we get a connection request from a client, then accept it
+		int client_len = sizeof client_info; 
+		int new_socket = accept(client_socket, (struct sockaddr*)&client_info, 
+			(socklen_t*)&client_len); 
+	 
+		// create a new thread to handle the client
+		pthread_t thread; 
+		int status = 0; 
+		if( (status = pthread_create(&thread, NULL, handle_client_t, (void *)&new_socket)) != 0 ) 
+		{ 
+			fprintf(stderr, "router - error creating thread in main! error code = %d\n", status); 
+			exit(1); 
+		} 
+	}
 
 	return EXIT_SUCCESS;
 }
