@@ -46,11 +46,6 @@ void *handle_client_t(void *socket);
  */
 void *handle_router_t(void *arg)
 {
-    // listens for other routers on port 8080
-    // if gets a connection
-        // accepts it
-        // passes socket to handle_client_t
-        //
     int router_socket = 0;
     struct sockaddr_in router_info;
 
@@ -78,19 +73,17 @@ void *handle_router_t(void *arg)
         diep("router - listen() in handle_router_t");
     }
 
-    printf("router is listening on port %d...\n", ROUTER_PORT);
-
     while (1)
     {
         // block until we get a connection request from a client, then accept it
         int router_len = sizeof router_info;
-        int new_socket = accept(router_socket, (struct sockaddr *)&router_info,
+        int route_socket = accept(router_socket, (struct sockaddr *)&router_info,
                                 (socklen_t *)&router_len);
 
         // create a new thread to handle the client
         pthread_t thread;
         int status = 0;
-        if ((status = pthread_create(&thread, NULL, handle_client_t, (void *)&new_socket)) != 0)
+        if ((status = pthread_create(&thread, NULL, handle_client_t, (void *)&route_socket)) != 0)
         {
             fprintf(stderr, "router - error creating thread in handle_router_t! error code = %d\n",
                 status);
@@ -191,7 +184,7 @@ int main(int argc, char *argv[])
 {
     pthread_t router_t;
     int status = 0;
-    if ((status = pthread_create(&router_t, NULL, handle_client_t, NULL)) != 0)
+    if ((status = pthread_create(&router_t, NULL, handle_router_t, (void*)0)) != 0)
     {
         fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
         exit(1);
