@@ -124,7 +124,7 @@ void *handle_client_t(void *socket)
         {
             // ok - not corrupted. route and print message header + data
             route_message(recv_buffer);
-            printf("Source - %c, Destination - %c, Message - %d%d", recv_buffer[SOURCE_OFFSET],
+            printf("Source - %c, Destination - %c, Message - %d%d\n", recv_buffer[SOURCE_OFFSET],
                    recv_buffer[DEST_OFFSET], recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1]);
         }
         else
@@ -189,53 +189,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
         exit(1);
     }
-
-    int client_socket = 0;
-    struct sockaddr_in client_info;
-
-    // obtain a socket for the client connection
-    if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-    {
-        diep("router - socket() in main");
-    }
-
-    // set up for the port we want to listen on and other parameters
-    memset(&client_info, 0, sizeof client_info);
-    client_info.sin_family = AF_INET;
-    client_info.sin_addr.s_addr = htonl(INADDR_ANY);
-    client_info.sin_port = htons(CLIENT_PORT);
-
-    // bind the server to client port
-    if (bind(client_socket, (struct sockaddr *)&client_info, sizeof client_info) == -1)
-    {
-        diep("router - bind() in main");
-    }
-
-    // listen for incoming connections from client
-    if (listen(client_socket, BACKLOG) == -1)
-    {
-        diep("router - listen() in main");
-    }
-
-    printf("router is listening on port %d...\n", CLIENT_PORT);
-
-    while (1)
-    {
-        // block until we get a connection request from a client, then accept it
-        int client_len = sizeof client_info;
-        int new_socket = accept(client_socket, (struct sockaddr *)&client_info,
-                                (socklen_t *)&client_len);
-
-        // create a new thread to handle the client
-        pthread_t thread;
-        int status = 0;
-        if ((status = pthread_create(&thread, NULL, handle_client_t, (void *)&new_socket)) != 0)
-        {
-            fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
-            exit(1);
-        }
-        pthread_join(thread, NULL);
-    }
+	
     pthread_join(router_t, NULL);
 
     return EXIT_SUCCESS;

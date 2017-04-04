@@ -17,8 +17,8 @@
 #include <stdbool.h>
 #include "router_funcs.h"
 
-#define PORT 8080
-#define INCOMING_PORT 8000
+#define PORT 8000
+#define ROUTER_PORT 8080
 #define BACKLOG 10
 #define ROUTER_ADDR "127.0.1.1"
 #define CLIENT "B"
@@ -85,9 +85,8 @@ void *send_message(void *socket)
     int value;
     int router_socket = *((int *)socket);
 
-    while (1) // loop
+    while (1)
     {
-
         value = (rand() % 3); // pick random client
         unsigned char message[MAX_BUFFER_SIZE];
         message[SOURCE_OFFSET] = *CLIENT;
@@ -112,6 +111,8 @@ void *send_message(void *socket)
 
 int main(int argc, char *argv[])
 {
+	/* CONNECT TO ROUTER */
+	
     //create socket with router
     int router_socket = 0;
 
@@ -119,19 +120,19 @@ int main(int argc, char *argv[])
 
     if ((router_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
-        diep("client - socket()");
+        diep("client - socket() in main");
     }
 
     memset(&server_info, 0, sizeof(server_info));
 
     server_info.sin_family = AF_INET;
     server_info.sin_addr.s_addr = inet_addr(ROUTER_ADDR);
-    server_info.sin_port = htons(PORT);
+    server_info.sin_port = htons(ROUTER_PORT);
 
     // establish connection with router
     if (connect(router_socket, (struct sockaddr *)&server_info, sizeof(server_info)) == -1)
     {
-        diep("client - connect()");
+        diep("client - connect() in main");
     }
 
     // start the send message loop
@@ -142,8 +143,14 @@ int main(int argc, char *argv[])
         fprintf(stderr, "client - error creating thread! error code = %d\n", status);
         exit(1);
     }
-     pthread_join(thread, NULL);
+	
 
+	/* END CONNECT TO ROUTER */
+	
+	
+	
+	
+	
     // start the recieve message
     int client_socket = 0;
     struct sockaddr_in client_info;
@@ -157,8 +164,8 @@ int main(int argc, char *argv[])
     // set up for the port we want to listen on and other parameters
     memset(&client_info, 0, sizeof client_info);
     client_info.sin_family = AF_INET;
-    client_info.sin_addr.s_addr = inet_addr(ROUTER_ADDR);
-    client_info.sin_port = htons(INCOMING_PORT);
+	client_info.sin_addr.s_addr = htonl(INADDR_ANY);    
+	client_info.sin_port = htons(PORT);
 
     // bind the server to client port
     if (bind(client_socket, (struct sockaddr *)&client_info, sizeof client_info) == -1)
@@ -172,8 +179,9 @@ int main(int argc, char *argv[])
         diep("router - listen() in main");
     }
 
-    printf("client is listening on port %d...\n", INCOMING_PORT);
+    printf("client is listening on port %d...\n", PORT);
 
+	pthread_t thread2;
     while (1)
     {
         // block until we get a connection request from a client, then accept it
@@ -182,15 +190,15 @@ int main(int argc, char *argv[])
                                 (socklen_t *)&client_len);
 
         // create a new thread to handle the client
-        pthread_t thread2;
         int status = 0;
         if ((status = pthread_create(&thread2, NULL, handle_message, (void *)&new_socket)) != 0)
         {
             fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
             exit(1);
         }
-         pthread_join(thread2, NULL);
     }
+	pthread_join(thread, NULL);
+	pthread_join(thread2, NULL);
 
     return EXIT_SUCCESS;
 }
