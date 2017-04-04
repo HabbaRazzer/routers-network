@@ -39,11 +39,12 @@ char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "127.0.0.1", [66] = "other1", [67
 
 void *handle_request_t(void *socket);
 void route_message(unsigned char *message);
+void *handle_client_t(void *socket);
 
 /**
  * Will listen for other routers on port <ROUTER_PORT>.
  */
-void *handle_router_t(void *socket)
+void *handle_router_t(void *arg)
 {
     // listens for other routers on port 8080
     // if gets a connection
@@ -165,7 +166,7 @@ void route_message(unsigned char *message)
     printf("%s\n", inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
     router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
 
-    if(strcmp(destination, 127.0.0.1) == 0)
+    if(strcmp(destination, "127.0.0.1") == 0)
     {
          router_info.sin_port = htons(CLIENT_PORT);
     }else
@@ -190,7 +191,7 @@ int main(int argc, char *argv[])
 {
     pthread_t router_t;
     int status = 0;
-    if ((status = pthread_create(&thread, NULL, handle_client_t, (void *)&new_socket)) != 0)
+    if ((status = pthread_create(&router_t, NULL, handle_client_t, NULL)) != 0)
     {
         fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
         exit(1);
@@ -209,7 +210,7 @@ int main(int argc, char *argv[])
     memset(&client_info, 0, sizeof client_info);
     client_info.sin_family = AF_INET;
     client_info.sin_addr.s_addr = htonl(INADDR_ANY);
-    client_info.sin_port = htons(LISTEN_PORT);
+    client_info.sin_port = htons(CLIENT_PORT);
 
     // bind the server to client port
     if (bind(client_socket, (struct sockaddr *)&client_info, sizeof client_info) == -1)
@@ -223,7 +224,7 @@ int main(int argc, char *argv[])
         diep("router - listen() in main");
     }
 
-    printf("router is listening on port %d...\n", LISTEN_PORT);
+    printf("router is listening on port %d...\n", CLIENT_PORT);
 
     while (1)
     {
