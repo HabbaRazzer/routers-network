@@ -23,7 +23,7 @@
 #define ROUTER_ADDR "127.0.1.1"
 #define CLIENT "A"
 
-const char *const CLIENT_ADDRS[] = {"A", "B", "B"};
+const char *const CLIENT_ADDRS[] = {"A", "A", "A"};
 
 size_t current_value = 1;
 
@@ -66,6 +66,7 @@ void *handle_message(void *socket)
             {
                 printf("Message recieved: %d,%d, source - %c \n", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1],
                        recv_buffer[SOURCE_OFFSET]);
+		fflush(stdout);
             }
             else
             {

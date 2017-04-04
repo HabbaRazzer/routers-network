@@ -157,15 +157,26 @@ void route_message(unsigned char *message)
     memset(&router_info, 0, sizeof(router_info));
     router_info.sin_family = AF_INET;
     printf("%s\n", inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
-    router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
+    
 
-    if(strcmp(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])), "127.0.0.1") == 0)
+    if(message[DEST_OFFSET] == 'A')
     {
          router_info.sin_port = htons(CLIENT_PORT);
-    }else
+	h = gethostbyname("127.0.0.1");
+	 
+    }
+    else if(message[DEST_OFFSET] == 'B')
     {
          router_info.sin_port = htons(ROUTER_PORT);
+	h = gethostbyname("MCT164l11");
     }
+    else
+    {
+         router_info.sin_port = htons(CLIENT_PORT);
+	h = gethostbyname("127.0.0.1");
+    }
+
+router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
 
     // establish connection with neighboring router
     if (connect(router_socket, (struct sockaddr *)&router_info, sizeof(router_info)) == -1)
@@ -178,7 +189,8 @@ void route_message(unsigned char *message)
     {
         diep("router - send() in route_message");
     }
-	close(router_socket);
+
+    close(router_socket);
 }
 
 int main(int argc, char *argv[])
