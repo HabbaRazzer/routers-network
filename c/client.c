@@ -23,7 +23,7 @@
 #define ROUTER_ADDR "127.0.1.1"
 #define CLIENT "B"
 
-const char *const CLIENT_ADDRS[] = {"B", "B", "B"};
+const char *const CLIENT_ADDRS[] = {"B", "A", "A"};
 
 size_t current_value = 1;
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     memset(&server_info, 0, sizeof(server_info));
 
     server_info.sin_family = AF_INET;
-    server_info.sin_addr.s_addr = inet_addr(ROUTER_ADDR);
+    server_info.sin_addr.s_addr = htonl(INADDR_ANY);
     server_info.sin_port = htons(ROUTER_PORT);
 
     // establish connection with router

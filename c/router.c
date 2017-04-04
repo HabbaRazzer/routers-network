@@ -34,7 +34,7 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "mct164l12", [66] = "127.0.0.1", [67] = "other2",
+char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "mct164l11", [66] = "mct164l12", [67] = "other2",
     [68] = "other3"};
 
 void *handle_request_t(void *socket);
@@ -159,7 +159,7 @@ void route_message(unsigned char *message)
     printf("%s\n", inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
     router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
 
-    if(strcmp(destination, "127.0.0.1") == 0)
+    if(strcmp(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])), "127.0.0.1") == 0)
     {
          router_info.sin_port = htons(CLIENT_PORT);
     }else
