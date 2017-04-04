@@ -30,11 +30,11 @@
 
 #define CLIENT_PORT 8000
 #define OUTGOING_PORT 8080
-#define BACKLOG 10
+#define BACKLOG 128
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "robert-Inspiron-5547", [66] = "mct162l07", [67] = "other2",
+char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "robert-Inspiron-5547", [66] = "Familys-iMac", [67] = "other2",
                                         [68] = "other3"};
 
 void *handle_request_t(void *socket);
@@ -105,7 +105,14 @@ void route_message(unsigned char *message)
     router_info.sin_family = AF_INET;
     printf("%s\n", inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
     router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
-    router_info.sin_port = htons(OUTGOING_PORT);
+
+    if(strcmp(destination,"robert-Inspiron-5547"))
+    {
+         router_info.sin_port = htons(OUTGOING_PORT);
+    }else
+    {
+         router_info.sin_port = htons(CLIENT_PORT);
+    }
 
     // establish connection with neighboring router
     if (connect(router_socket, (struct sockaddr *)&router_info, sizeof(router_info)) == -1)
@@ -166,6 +173,7 @@ int main(int argc, char *argv[])
             fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
             exit(1);
         }
+        pthread_join(thread, NULL);
     }
 
     return EXIT_SUCCESS;
