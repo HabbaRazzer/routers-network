@@ -32,7 +32,7 @@ public class ClientAll
 		byte source = 'C';
 		int checksum;
 		byte onesCompliment;
-		short data = 120;
+		short data = 0;
 
 		while(true)
 		{

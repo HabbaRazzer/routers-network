@@ -40,7 +40,7 @@ public class JavaRouter implements Runnable
             listener.close();
         }
     }
-    
+
     /**
      * Router Code:
      * Reads in the bytes of the message and determines the destination using the lookup table.
@@ -109,11 +109,11 @@ public class JavaRouter implements Runnable
 		}
 		else if(destination == 'C')
 		{
-			return new String[]{"mct263l30","8000"};
+			return new String[]{"127.0.0.1","8000"};
 		}
 		else if(destination == 'D')
 		{
-			return new String[]{"mct263l29","8080"};
+			return new String[]{"mct164l10","8080"};
 		}
 		else
 		{

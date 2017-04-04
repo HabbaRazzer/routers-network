@@ -34,7 +34,7 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "127.0.0.1", [66] = "other1", [67] = "other2",
+char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "mct164l12", [66] = "127.0.0.1", [67] = "other2",
     [68] = "other3"};
 
 void *handle_request_t(void *socket);

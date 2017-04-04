@@ -26,13 +26,11 @@ public class JavaServer implements Runnable {
     public static void main(String[] args) throws IOException
     {
         ServerSocket listener = new ServerSocket(8080);
-        System.out.println("Listening");
         try
         {
             while (true)
             {
                 Socket clientSocket = listener.accept();
-                System.out.println("Connected");
                 new Thread(new JavaServer(clientSocket)).start();
             }
         }
@@ -68,7 +66,6 @@ public class JavaServer implements Runnable {
 			 System.out.println("------Client-------");
 			 System.out.println("Source:"+(char)data[0]);
 			 System.out.println("Destination:"+(char)data[1]);
-			 System.out.println("Checksum:"+Integer.toBinaryString(data[2]));
 			 System.out.println("Data:"+counter);
 
          }
