@@ -71,9 +71,5 @@ public class ClientAll
 
 		return 'D';
 		//return destinations[i];
-
 	}
-
 }
-
-

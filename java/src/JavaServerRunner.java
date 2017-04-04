@@ -7,6 +7,7 @@ public class JavaServerRunner implements Runnable{
 	/**
 	 * Class that creates a thread which runs javaServer in order to accept multiple
 	 * connections at once.
+	 * @author Darnell Martin & Stephen Clabaugh
 	 */
 	@Override
 	public void run()

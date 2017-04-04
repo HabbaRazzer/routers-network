@@ -27,13 +27,11 @@ public class JavaRouter implements Runnable
     public static void main(String[] args) throws IOException
     {
         ServerSocket listener = new ServerSocket(8080);
-        System.out.println("Listening");
         try
         {
             while (true)
             {
                 Socket clientSocket = listener.accept();
-                System.out.println("Connected");
                 new Thread(new JavaRouter(clientSocket)).start();
             }
         }
@@ -42,6 +40,7 @@ public class JavaRouter implements Runnable
             listener.close();
         }
     }
+    
     /**
      * Router Code:
      * Reads in the bytes of the message and determines the destination using the lookup table.
@@ -66,15 +65,14 @@ public class JavaRouter implements Runnable
 				 return;
 			 }
 
+			 //Print Debug Information
 			 System.out.println("------Router-------");
 			 System.out.println("Source:"+(char)data[0]);
 			 System.out.println("Destination:"+(char)data[1]);
-			 System.out.println("Checksum:"+Integer.toBinaryString(data[2]));
 			 System.out.println("Data:"+counter);
 
 			 String[] route = getRoute(data[1]);
 
-			 System.out.println(route);
 		     Socket s = new Socket(route[0], Integer.parseInt(route[1]));
 
 		     DataOutputStream output = new DataOutputStream(s.getOutputStream());
@@ -122,6 +120,5 @@ public class JavaRouter implements Runnable
 			return new String[]{"127.0.0.1","8000"};
 		}
 	}
-
 }
 
