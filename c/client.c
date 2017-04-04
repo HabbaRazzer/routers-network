@@ -17,13 +17,13 @@
 #include <stdbool.h>
 #include "router_funcs.h"
 
-#define PORT 4051
-#define INCOMING_PORT 4052
+#define PORT 8080
+#define INCOMING_PORT 8000
 #define BACKLOG 10
 #define ROUTER_ADDR "127.0.1.1"
 #define CLIENT "B"
 
-const char *const CLIENT_ADDRS[] = {"B", "A", "B"};
+const char *const CLIENT_ADDRS[] = {"B", "B", "B"};
 
 size_t current_value = 1;
 
@@ -142,6 +142,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "client - error creating thread! error code = %d\n", status);
         exit(1);
     }
+     pthread_join(thread, NULL);
 
     // start the recieve message
     int client_socket = 0;
@@ -188,6 +189,7 @@ int main(int argc, char *argv[])
             fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
             exit(1);
         }
+         pthread_join(thread2, NULL);
     }
 
     return EXIT_SUCCESS;
