@@ -18,11 +18,12 @@
 #include "router_funcs.h"
 
 #define PORT 8000
+#define INCOMING_PORT 8080
 #define BACKLOG 10
-#define ROUTER_ADDR "127.0.0.1"
+#define ROUTER_ADDR "127.0.1.1"
 #define CLIENT "A"
 
-const char *const CLIENT_ADDRS[] = {"B", "C", "D"};
+const char *const CLIENT_ADDRS[] = {"A", "A", "A"};
 
 size_t current_value = 1;
 
@@ -37,19 +38,20 @@ void *send_message(void *socket);
  */
 void *handle_message(void *socket)
 {
-    unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
-    int status;
-    int client_socket = *((int *)socket);
 
     while (1)
     {
-        if (recv(client_socket, recv_buffer, sizeof recv_buffer, 0))
-        {
-            if ((status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1)
-            {
-                diep("client - recv() inside handle_message thread");
-            }
 
+        unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
+        int status;
+        int client_socket = *((int *)socket);
+
+        if ((status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1)
+        {
+            diep("client - recv() inside handle_message thread");
+        }
+        if (recv_buffer[DATA_OFFSET] != 0)
+        {
             if (status == 0)
             {
                 // roter has closed the connection
@@ -65,10 +67,9 @@ void *handle_message(void *socket)
                 printf("Message recieved: %d,%d, source - %c \n", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1],
                        recv_buffer[SOURCE_OFFSET]);
             }
-
-            if (send(client_socket, recv_buffer, sizeof recv_buffer, 0) == -1)
+            else
             {
-                diep("client - send() inside handle_message thread");
+                printf("Message corrupted.\n");
             }
         }
     }
@@ -142,16 +143,52 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    // start the recieve message loop
-    pthread_t thread2;
-    int status2 = 0;
-    if ((status2 = pthread_create(&thread2, NULL, handle_message, (void *)&router_socket)) != 0)
+    // start the recieve message
+    int client_socket = 0;
+    struct sockaddr_in client_info;
+
+    // obtain a socket for the router connection
+    if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
-        fprintf(stderr, "client - error creating thread! error code = %d\n", status);
-        exit(1);
+        diep("router - socket() in main");
     }
-    pthread_join(thread2, NULL);
-    pthread_join(thread, NULL);
+
+    // set up for the port we want to listen on and other parameters
+    memset(&client_info, 0, sizeof client_info);
+    client_info.sin_family = AF_INET;
+    client_info.sin_addr.s_addr = inet_addr(ROUTER_ADDR);
+    client_info.sin_port = htons(INCOMING_PORT);
+
+    // bind the server to client port
+    if (bind(client_socket, (struct sockaddr *)&client_info, sizeof client_info) == -1)
+    {
+        diep("router - bind() in main");
+    }
+
+    // listen for incoming connections from client
+    if (listen(client_socket, BACKLOG) == -1)
+    {
+        diep("router - listen() in main");
+    }
+
+    printf("client is listening on port %d...\n", INCOMING_PORT);
+
+    while (1)
+    {
+        // block until we get a connection request from a client, then accept it
+        int client_len = sizeof client_info;
+        int new_socket = accept(client_socket, (struct sockaddr *)&client_info,
+                                (socklen_t *)&client_len);
+
+        // create a new thread to handle the client
+        pthread_t thread2;
+        int status = 0;
+        if ((status = pthread_create(&thread2, NULL, handle_message, (void *)&new_socket)) != 0)
+        {
+            fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
+            exit(1);
+        }
+    }
 
     return EXIT_SUCCESS;
 }
