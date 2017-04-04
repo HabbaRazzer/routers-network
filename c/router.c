@@ -28,9 +28,10 @@
 #include <stdbool.h>
 #include "router_funcs.h"
 
-#define CLIENT_PORT 8000
-#define OUTGOING_PORT 8080
+#define LISTEN_PORT 4051
+#define CLIENT_PORT 4052
 #define BACKLOG 128
+#define HOME "robert-Inspiron-5547"
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
@@ -106,12 +107,12 @@ void route_message(unsigned char *message)
     printf("%s\n", inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
     router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
 
-    if(strcmp(destination,"robert-Inspiron-5547"))
-    {
-         router_info.sin_port = htons(OUTGOING_PORT);
-    }else
+    if(strcmp(destination,HOME) == 0)
     {
          router_info.sin_port = htons(CLIENT_PORT);
+    }else
+    {
+         router_info.sin_port = htons(LISTEN_PORT);
     }
 
     // establish connection with neighboring router
@@ -142,7 +143,7 @@ int main(int argc, char *argv[])
     memset(&client_info, 0, sizeof client_info);
     client_info.sin_family = AF_INET;
     client_info.sin_addr.s_addr = htonl(INADDR_ANY);
-    client_info.sin_port = htons(CLIENT_PORT);
+    client_info.sin_port = htons(LISTEN_PORT);
 
     // bind the server to client port
     if (bind(client_socket, (struct sockaddr *)&client_info, sizeof client_info) == -1)
@@ -156,7 +157,7 @@ int main(int argc, char *argv[])
         diep("router - listen() in main");
     }
 
-    printf("router is listening on port %d...\n", CLIENT_PORT);
+    printf("router is listening on port %d...\n", LISTEN_PORT);
 
     while (1)
     {
