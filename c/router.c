@@ -178,6 +178,7 @@ void route_message(unsigned char *message)
     {
         diep("router - send() in route_message");
     }
+	close(router_socket);
 }
 
 int main(int argc, char *argv[])

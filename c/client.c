@@ -21,9 +21,9 @@
 #define ROUTER_PORT 8080
 #define BACKLOG 10
 #define ROUTER_ADDR "127.0.1.1"
-#define CLIENT "B"
+#define CLIENT "A"
 
-const char *const CLIENT_ADDRS[] = {"B", "A", "A"};
+const char *const CLIENT_ADDRS[] = {"A", "B", "B"};
 
 size_t current_value = 1;
 
@@ -50,14 +50,14 @@ void *handle_message(void *socket)
         {
             diep("client - recv() inside handle_message thread");
         }
+		
+		if( status == 0 ) 
+		{
+			pthread_exit(NULL);
+		}
+		
         if (recv_buffer[DATA_OFFSET] != 0)
         {
-            if (status == 0)
-            {
-                // roter has closed the connection
-                pthread_exit(NULL);
-            }
-
             // corruption check
             bool not_corrupt = is_not_corrupt(recv_buffer);
 
@@ -111,8 +111,6 @@ void *send_message(void *socket)
 
 int main(int argc, char *argv[])
 {
-	/* CONNECT TO ROUTER */
-	
     //create socket with router
     int router_socket = 0;
 
@@ -143,14 +141,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "client - error creating thread! error code = %d\n", status);
         exit(1);
     }
-	
 
-	/* END CONNECT TO ROUTER */
-	
-	
-	
-	
-	
     // start the recieve message
     int client_socket = 0;
     struct sockaddr_in client_info;
