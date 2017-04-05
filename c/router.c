@@ -30,15 +30,20 @@
 
 #define CLIENT_PORT 8000
 #define ROUTER_PORT 8080
-#define BACKLOG 10
+#define BACKLOG 128
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "mct164l11", [66] = "mct164l12", [67] = "other2",
-    [68] = "other3"};
+#define ROUTER_A "robert-Inspiron-5547"
+#define ROUTER_B "Familys-iMac"
+#define ROUTER_C "other2"
+#define ROUTER_D "other3"
+
+char *const ROUTING_TABLE[TABLE_LEN] = {[65] = ROUTER_A, [66] = ROUTER_B, [67] = ROUTER_C,
+    [68] = ROUTER_D};
 
 void *handle_request_t(void *socket);
-void route_message(unsigned char *message);
+void route_message(unsigned char *message, void *socket);
 void *handle_client_t(void *socket);
 
 /**
@@ -123,7 +128,7 @@ void *handle_client_t(void *socket)
         if (is_not_corrupt(recv_buffer))
         {
             // ok - not corrupted. route and print message header + data
-            route_message(recv_buffer);
+            route_message(recv_buffer, &client_socket);
             printf("Source - %c, Destination - %c, Message - %d%d\n", recv_buffer[SOURCE_OFFSET],
                    recv_buffer[DEST_OFFSET], recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1]);
         }
@@ -140,8 +145,11 @@ void *handle_client_t(void *socket)
  * params:
  *   message - the message to be routed
  */
-void route_message(unsigned char *message)
+void route_message(unsigned char *message, void *old_socket)
 {
+  if(message[DEST_OFFSET] == 'B')
+  {
+
     int router_socket = 0;
 
     struct sockaddr_in router_info;
@@ -154,29 +162,12 @@ void route_message(unsigned char *message)
     char *destination = ROUTING_TABLE[message[DEST_OFFSET]];
     struct hostent *h;
     h = gethostbyname(destination);
+    h = gethostbyname(ROUTER_B);
     memset(&router_info, 0, sizeof(router_info));
     router_info.sin_family = AF_INET;
+    router_info.sin_port = htons(CLIENT_PORT);
     printf("%s\n", inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
-    
-
-    if(message[DEST_OFFSET] == 'A')
-    {
-         router_info.sin_port = htons(CLIENT_PORT);
-	h = gethostbyname("127.0.0.1");
-	 
-    }
-    else if(message[DEST_OFFSET] == 'B')
-    {
-         router_info.sin_port = htons(ROUTER_PORT);
-	h = gethostbyname("MCT164l11");
-    }
-    else
-    {
-         router_info.sin_port = htons(CLIENT_PORT);
-	h = gethostbyname("127.0.0.1");
-    }
-
-router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
+    router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_list[0])));
 
     // establish connection with neighboring router
     if (connect(router_socket, (struct sockaddr *)&router_info, sizeof(router_info)) == -1)
@@ -191,6 +182,16 @@ router_info.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr_
     }
 
     close(router_socket);
+  }else{
+
+    int status;
+    int router_socket = *((int *)old_socket);
+
+    if ((status = send(router_socket, message, sizeof message, 0)) == -1)
+    {
+        diep("router - recv() in handle_request_t");
+    }
+  }
 }
 
 int main(int argc, char *argv[])
@@ -202,7 +203,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "router - error creating thread in main! error code = %d\n", status);
         exit(1);
     }
-	
+
     pthread_join(router_t, NULL);
 
     return EXIT_SUCCESS;
