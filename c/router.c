@@ -34,7 +34,7 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "mct263l24", [66] = "mct164l12", [67] = "other2",
+char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "mct162l07", [66] = "mct162l14", [67] = "other2",
     [68] = "other3"};
 
 void route_message(unsigned char *message);
@@ -48,6 +48,9 @@ void *handle_client_t(void *socket);
  */
 void *handle_client_t(void *socket)
 {
+	
+	while(1)
+	{
     // maintain connection with client until client disconnects
 	unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
 	int status;
@@ -61,7 +64,11 @@ void *handle_client_t(void *socket)
 	// check that the message has not been corrupted
 	if ( is_not_corrupt(recv_buffer) )
 	{
-		// ok - not corrupted. route and print message header + data
+		//ok - not corrupted. route and print message header + data
+		if(recv_buffer[SOURCE_OFFSET] == 'B')
+		{
+			close(client_socket);
+		}
 		route_message(recv_buffer);
 		printf("Source - %c, Destination - %c, Message - %d%d\n", recv_buffer[SOURCE_OFFSET],
 			   recv_buffer[DEST_OFFSET], recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1]);
@@ -69,7 +76,10 @@ void *handle_client_t(void *socket)
 	{
 		printf("Message corrupted.\n");
 	}
+	
+	}
 	pthread_exit(NULL);
+	
 }
 
 /**
@@ -162,11 +172,8 @@ int main(int argc, char *argv[])
         // block and accept when request comes in 
 		struct sockaddr_storage client_info;
         socklen_t ci_size = sizeof client_info;
-		int client = 0;
-        if ( (client = accept(router_socket, (struct sockaddr *)&client_info, &ci_size)) == -1 )
-		{
-			diep("router - accept() in main");						
-		}
+	int client = accept(router_socket, (struct sockaddr *)&client_info, &ci_size);
+		
 
 		// create a new thread to service that request
         int status = 0;
