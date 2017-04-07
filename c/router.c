@@ -34,7 +34,7 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "mct162l07", [66] = "mct162l14", [67] = "other2",
+char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "127.0.0.1", [66] = "127.0.0.1", [67] = "other2",
     [68] = "other3"};
 
 void route_message(unsigned char *message);
@@ -48,13 +48,13 @@ void *handle_client_t(void *socket);
  */
 void *handle_client_t(void *socket)
 {
-	
+
+    int client_socket = *((int *)socket);
 	while(1)
 	{
     // maintain connection with client until client disconnects
 	unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
 	int status;
-	int client_socket = *((int *)socket);
 
 	if ( (status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1 )
 	{
@@ -65,9 +65,9 @@ void *handle_client_t(void *socket)
 	if ( is_not_corrupt(recv_buffer) )
 	{
 		//ok - not corrupted. route and print message header + data
-		if(recv_buffer[SOURCE_OFFSET] == 'B')
+		if(recv_buffer[SOURCE_OFFSET] == 'A')
 		{
-			close(client_socket);
+			// close(client_socket);
 		}
 		route_message(recv_buffer);
 		printf("Source - %c, Destination - %c, Message - %d%d\n", recv_buffer[SOURCE_OFFSET],
@@ -76,10 +76,10 @@ void *handle_client_t(void *socket)
 	{
 		printf("Message corrupted.\n");
 	}
-	
+
 	}
 	pthread_exit(NULL);
-	
+
 }
 
 /**
@@ -102,18 +102,18 @@ void route_message(unsigned char *message)
     {
 		dest_port = CLIENT_PORT;
     }
-    else if(message[DEST_OFFSET] == 'B')
-    {
-		dest_port = ROUTER_PORT;
-    }
-	
+//    else if(message[DEST_OFFSET] == 'B')
+//    {
+//		dest_port = ROUTER_PORT;
+//    }
+
 	getaddrinfo(destination, dest_port, &hints, &res);
 
 	// get socket
     if ( (router_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1 )
     {
         diep("router - socket() in route_message");
-    }   
+    }
 
     // establish connection with router or client
     if ( connect(router_socket, res->ai_addr, res->ai_addrlen) == -1 )
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 {
     int router_socket = 0;
 	struct addrinfo hints, *res;
-	
+
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
@@ -152,13 +152,13 @@ int main(int argc, char *argv[])
     {
         diep("router - bind() in main");
     }
-	
+
 	// configure to reuse addresses
 	int optval = 1;
-	if ( setsockopt(router_socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval) == -1 ) 
+	if ( setsockopt(router_socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval) == -1 )
 	{
 		diep("router - setsockopt() in main");
-	} 
+	}
 
     // listening...
     if ( listen(router_socket, BACKLOG) == -1 )
@@ -169,11 +169,11 @@ int main(int argc, char *argv[])
 	pthread_t thread;
     while (1)
     {
-        // block and accept when request comes in 
+        // block and accept when request comes in
 		struct sockaddr_storage client_info;
         socklen_t ci_size = sizeof client_info;
-	int client = accept(router_socket, (struct sockaddr *)&client_info, &ci_size);
-		
+	    int client = accept(router_socket, (struct sockaddr *)&client_info, &ci_size);
+
 
 		// create a new thread to service that request
         int status = 0;
