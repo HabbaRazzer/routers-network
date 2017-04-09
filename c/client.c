@@ -21,7 +21,7 @@
 #define ROUTER_PORT 8080
 #define BACKLOG 10
 #define ROUTER_ADDR "127.0.1.1"
-#define CLIENT "B"
+#define CLIENT "A"
 
 const char *const CLIENT_ADDRS[] = {"A", "A", "A"};
 

@@ -34,8 +34,8 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-#define ROUTER_A "192.168.1.148"
-#define ROUTER_B "127.0.0.1"
+#define ROUTER_A "127.0.0.1"
+#define ROUTER_B "192.168.1.237"
 #define ROUTER_C "192.168.1.1"
 #define ROUTER_D "192.168.1.2"
 
@@ -110,7 +110,7 @@ void route_message(unsigned char *message)
 	printf("Sending to Router - %c, Destination - %c, Message - %d%d\n", message[SOURCE_OFFSET],
 	       message[DEST_OFFSET], message[DATA_OFFSET], message[DATA_OFFSET + 1]);
 	server_info.sin_addr.s_addr = inet_addr(ROUTER_A);
-	server_info.sin_port = htons(ROUTER_PORT);
+	server_info.sin_port = htons(CLIENT_PORT);
     }
 
     if (message[DEST_OFFSET] == 66)
@@ -118,7 +118,7 @@ void route_message(unsigned char *message)
 	printf("Sending to Client - %c, Destination - %c, Message - %d%d\n", message[SOURCE_OFFSET],
 	       message[DEST_OFFSET], message[DATA_OFFSET], message[DATA_OFFSET + 1]);
 	server_info.sin_addr.s_addr = inet_addr(ROUTER_B);
-	server_info.sin_port = htons(CLIENT_PORT);
+	server_info.sin_port = htons(ROUTER_PORT);
     }
 
     // establish connection with router
