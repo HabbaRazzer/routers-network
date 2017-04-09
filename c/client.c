@@ -23,7 +23,7 @@
 #define ROUTER_ADDR "127.0.1.1"
 #define CLIENT "B"
 
-const char *const CLIENT_ADDRS[] = {"B", "B", "B"};
+const char *const CLIENT_ADDRS[] = {"A", "A", "A"};
 
 size_t current_value = 1;
 

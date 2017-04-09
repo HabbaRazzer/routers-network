@@ -34,7 +34,7 @@
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-#define ROUTER_A "127.0.0.1"
+#define ROUTER_A "192.168.1.148"
 #define ROUTER_B "127.0.0.1"
 #define ROUTER_C "192.168.1.1"
 #define ROUTER_D "192.168.1.2"
@@ -77,8 +77,8 @@ void *handle_client_t(void *socket)
 	}
 	else
 	{
-	    printf("Message corrupted.\n");
-	    fflush(stdout);
+	  	//printf("Message corrupted.\n");
+			 fflush(stdout);
 	}
     }
     pthread_exit(NULL);
