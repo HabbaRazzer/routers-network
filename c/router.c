@@ -28,14 +28,19 @@
 #include <stdbool.h>
 #include "router_funcs.h"
 
-#define CLIENT_PORT "8000"
-#define ROUTER_PORT "8080"
+#define CLIENT_PORT 8000
+#define ROUTER_PORT 8080
 #define BACKLOG 10
 #define NUM_ROUTERS 4
 #define TABLE_LEN 'A' + NUM_ROUTERS
 
-char *const ROUTING_TABLE[TABLE_LEN] = {[65] = "127.0.0.1", [66] = "127.0.0.1", [67] = "other2",
-    [68] = "other3"};
+#define ROUTER_A "127.0.0.1"
+#define ROUTER_B "127.0.0.1"
+#define ROUTER_C "192.168.1.1"
+#define ROUTER_D "192.168.1.2"
+
+char *const ROUTING_TABLE[TABLE_LEN] = {[65] = ROUTER_A, [66] = ROUTER_B, [67] = ROUTER_C,
+					[68] = ROUTER_D};
 
 void route_message(unsigned char *message);
 void *handle_client_t(void *socket);
@@ -50,36 +55,33 @@ void *handle_client_t(void *socket)
 {
 
     int client_socket = *((int *)socket);
-	while(1)
-	{
-    // maintain connection with client until client disconnects
+    while (1)
+    {
+	// maintain connection with client until client disconnects
 	unsigned char recv_buffer[MAX_BUFFER_SIZE] = {0};
 	int status;
 
-	if ( (status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1 )
+	if ((status = recv(client_socket, recv_buffer, sizeof recv_buffer, 0)) == -1)
 	{
-		diep("router - recv() in handle_request_t");
+	    diep("router - recv() in handle_request_t");
 	}
 
 	// check that the message has not been corrupted
-	if ( is_not_corrupt(recv_buffer) )
+	if (is_not_corrupt(recv_buffer))
 	{
-		//ok - not corrupted. route and print message header + data
-		if(recv_buffer[SOURCE_OFFSET] == 'A')
-		{
-			// close(client_socket);
-		}
-		route_message(recv_buffer);
-		printf("Source - %c, Destination - %c, Message - %d%d\n", recv_buffer[SOURCE_OFFSET],
-			   recv_buffer[DEST_OFFSET], recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1]);
-	} else
+	    //ok - not corrupted. route and print message header + data
+	    route_message(recv_buffer);
+	    printf("Source - %c, Destination - %c, Message - %d%d\n", recv_buffer[SOURCE_OFFSET],
+		   recv_buffer[DEST_OFFSET], recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1]);
+	    fflush(stdout);
+	}
+	else
 	{
-		printf("Message corrupted.\n");
+	    printf("Message corrupted.\n");
+	    fflush(stdout);
 	}
-
-	}
-	pthread_exit(NULL);
-
+    }
+    pthread_exit(NULL);
 }
 
 /**
@@ -89,43 +91,48 @@ void *handle_client_t(void *socket)
  */
 void route_message(unsigned char *message)
 {
+    //create socket with router
     int router_socket = 0;
-	struct addrinfo hints, *res;
 
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
+    struct sockaddr_in server_info;
 
-	char *destination = ROUTING_TABLE[message[DEST_OFFSET]];
-	char *dest_port;
-	if(message[DEST_OFFSET] == 'A')
+    if ((router_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
-		dest_port = CLIENT_PORT;
-    }
-//    else if(message[DEST_OFFSET] == 'B')
-//    {
-//		dest_port = ROUTER_PORT;
-//    }
-
-	getaddrinfo(destination, dest_port, &hints, &res);
-
-	// get socket
-    if ( (router_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1 )
-    {
-        diep("router - socket() in route_message");
+	diep("router - socket() in route_message");
     }
 
-    // establish connection with router or client
-    if ( connect(router_socket, res->ai_addr, res->ai_addrlen) == -1 )
+    memset(&server_info, 0, sizeof(server_info));
+
+    server_info.sin_family = AF_INET;
+
+    if (message[DEST_OFFSET] == 65)
     {
-        diep("router - connect() in route_message");
+	printf("Sending to Router - %c, Destination - %c, Message - %d%d\n", message[SOURCE_OFFSET],
+	       message[DEST_OFFSET], message[DATA_OFFSET], message[DATA_OFFSET + 1]);
+	server_info.sin_addr.s_addr = inet_addr(ROUTER_A);
+	server_info.sin_port = htons(ROUTER_PORT);
     }
 
-    // send message
-    if ( send(router_socket, message, sizeof message, 0) == -1 )
+    if (message[DEST_OFFSET] == 66)
     {
-        diep("router - send() in route_message");
+	printf("Sending to Client - %c, Destination - %c, Message - %d%d\n", message[SOURCE_OFFSET],
+	       message[DEST_OFFSET], message[DATA_OFFSET], message[DATA_OFFSET + 1]);
+	server_info.sin_addr.s_addr = inet_addr(ROUTER_B);
+	server_info.sin_port = htons(CLIENT_PORT);
     }
+
+    // establish connection with router
+    if (connect(router_socket, (struct sockaddr *)&server_info, sizeof(server_info)) == -1)
+    {
+	diep("router - connect() in route_message");
+    }
+
+    if (send(router_socket, message, sizeof message, 0) == -1)
+    {
+	diep("router - send() in route_message");
+    }
+
+    fflush(stdout);
 
     close(router_socket);
 }
@@ -139,7 +146,7 @@ int main(int argc, char *argv[])
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	getaddrinfo(NULL, ROUTER_PORT, &hints, &res);
+	getaddrinfo(NULL, "8080", &hints, &res);
 
     // obtain a socket
     if ( (router_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1 )
@@ -165,6 +172,8 @@ int main(int argc, char *argv[])
     {
         diep("router - listen() in main");
     }
+
+			printf("router is listening on port %d...\n", ROUTER_PORT);
 
 	pthread_t thread;
     while (1)
