@@ -69,7 +69,6 @@ public class ClientAll
 		int i = rand.nextInt(3);
 		destinations[i] = 0;
 
-		return 'D';
-		//return destinations[i];
+		return destinations[i];
 	}
 }
