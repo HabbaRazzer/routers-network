@@ -9,3 +9,5 @@ c/*.swp
 c/*.swo
 
 /bin/
+client
+router

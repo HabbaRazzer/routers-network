@@ -1,7 +1,7 @@
 /*
  * Nick Martinez, Robert Windisch, Stephen Clabaugh, Darnell Martin
  * CSC434 - Computer Networks
- * Routing-Network (C Implementation) Client 
+ * Routing-Network (C Implementation) Client
  */
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -21,7 +21,7 @@
 #define ROUTER_PORT 8080
 #define BACKLOG 10
 #define ROUTER_ADDR "127.0.1.1"
-#define CLIENT "A"
+#define CLIENT "B"
 
 const char *const CLIENT_ADDRS[] = {"A", "A", "A"};
 
@@ -34,7 +34,7 @@ void *send_message(void *socket);
  * Handles any messages sent from a client.
  *
  * params:
- *   socket - the socket interface to the client connection 
+ *   socket - the socket interface to the client connection
  */
 void *handle_message(void *socket)
 {
@@ -50,12 +50,12 @@ void *handle_message(void *socket)
         {
             diep("client - recv() inside handle_message thread");
         }
-		
-		if( status == 0 ) 
-		{
-			pthread_exit(NULL);
-		}
-		
+
+        if (status == 0)
+        {
+            pthread_exit(NULL);
+        }
+
         if (recv_buffer[DATA_OFFSET] != 0)
         {
             // corruption check
@@ -64,9 +64,9 @@ void *handle_message(void *socket)
             // print the contents of the message
             if (not_corrupt)
             {
-                printf("Message recieved: %d,%d, source - %c \n", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1],
+                printf("Message recieved: %d,%d, From - %c \n", recv_buffer[DATA_OFFSET], recv_buffer[DATA_OFFSET + 1],
                        recv_buffer[SOURCE_OFFSET]);
-		fflush(stdout);
+                fflush(stdout);
             }
             else
             {
@@ -77,12 +77,12 @@ void *handle_message(void *socket)
 }
 
 /**
- * Sends a message to client selected at random every two seconds. 
+ * Sends a message to client selected at random every two seconds.
  */
 void *send_message(void *socket)
 {
     srand((unsigned)time(NULL));
-    int counter = 1;
+    int counter = 11;
     int value;
     int router_socket = *((int *)socket);
 
@@ -96,7 +96,7 @@ void *send_message(void *socket)
         message[DATA_OFFSET + 1] = counter;
         calc_checksum(message); // package message
 
-        printf("Message Sent: %c, %c, %d, %d, %d \n", message[SOURCE_OFFSET], message[DEST_OFFSET],
+        printf("Message Sent: From: %c, To: %c, %d, %d, %d \n", message[SOURCE_OFFSET], message[DEST_OFFSET],
                message[DATA_OFFSET], message[DATA_OFFSET + 1], message[CHECK_OFFSET]); // print data + destination to stdout
 
         if (send(router_socket, message, sizeof message, 0) == -1)
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     memset(&server_info, 0, sizeof(server_info));
 
     server_info.sin_family = AF_INET;
-    server_info.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_info.sin_addr.s_addr = inet_addr("127.0.0.1");
     server_info.sin_port = htons(ROUTER_PORT);
 
     // establish connection with router
@@ -150,30 +150,30 @@ int main(int argc, char *argv[])
     // obtain a socket for the router connection
     if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
-        diep("router - socket() in main");
+        diep("client - socket() in main");
     }
 
     // set up for the port we want to listen on and other parameters
     memset(&client_info, 0, sizeof client_info);
     client_info.sin_family = AF_INET;
-	client_info.sin_addr.s_addr = htonl(INADDR_ANY);    
-	client_info.sin_port = htons(PORT);
+    client_info.sin_addr.s_addr = htonl(INADDR_ANY);
+    client_info.sin_port = htons(PORT);
 
     // bind the server to client port
     if (bind(client_socket, (struct sockaddr *)&client_info, sizeof client_info) == -1)
     {
-        diep("router - bind() in main");
+        diep("client - bind() in main");
     }
 
     // listen for incoming connections from client
     if (listen(client_socket, BACKLOG) == -1)
     {
-        diep("router - listen() in main");
+        diep("client - listen() in main");
     }
 
     printf("client is listening on port %d...\n", PORT);
 
-	pthread_t thread2;
+    pthread_t thread2;
     while (1)
     {
         // block until we get a connection request from a client, then accept it
@@ -189,8 +189,8 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
-	pthread_join(thread, NULL);
-	pthread_join(thread2, NULL);
+    pthread_join(thread, NULL);
+    pthread_join(thread2, NULL);
 
     return EXIT_SUCCESS;
 }
